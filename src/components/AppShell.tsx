@@ -13,6 +13,7 @@ interface Props {
 export function AppShell({ tab, right, children }: Props) {
   useEffect(() => {
     hydrateStore();
+    startCloudSync();
   }, []);
 
   return (
