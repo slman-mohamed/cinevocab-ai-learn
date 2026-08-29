@@ -46,5 +46,9 @@ async function push() {
   if (!userId) return;
   await supabase
     .from("user_state")
-    .upsert({ user_id: userId, payload: getState(), updated_at: new Date().toISOString() });
+    .upsert({
+      user_id: userId,
+      payload: JSON.parse(JSON.stringify(getState())),
+      updated_at: new Date().toISOString(),
+    });
 }
