@@ -45,6 +45,34 @@ function subscribe(cb: () => void) {
   return () => listeners.delete(cb);
 }
 
+export const subscribeState = subscribe;
+
+export function getState(): AppState {
+  return state;
+}
+
+/** Union local and cloud data, keeping every movie and word from both sides. */
+export function mergeState(incoming: Partial<AppState>) {
+  const movies = [...state.movies];
+  for (const m of incoming.movies ?? []) {
+    if (!movies.some((x) => x.id === m.id)) movies.push(m);
+  }
+  const words = [...state.words];
+  for (const w of incoming.words ?? []) {
+    const dup = words.some(
+      (x) =>
+        x.id === w.id ||
+        (x.movieId === w.movieId && x.word.toLowerCase() === w.word.toLowerCase()),
+    );
+    if (!dup) words.push(w);
+  }
+  set({
+    movies: movies.sort((a, b) => a.createdAt - b.createdAt),
+    words: words.sort((a, b) => a.createdAt - b.createdAt),
+    selectedMovieId: state.selectedMovieId ?? incoming.selectedMovieId ?? null,
+  });
+}
+
 const getSnapshot = () => state;
 const getServerSnapshot = () => empty;
 
