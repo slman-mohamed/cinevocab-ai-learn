@@ -26,7 +26,7 @@ export const Route = createFileRoute("/word-bank")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: WordBank;
+  component: WordBank,
 });
 
 function WordBank() {
