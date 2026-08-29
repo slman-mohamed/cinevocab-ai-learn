@@ -3,7 +3,7 @@ export type FrequencyLevel = "Very Common" | "Common" | "Uncommon" | "Rare";
 export interface Movie {
   id: string;
   title: string;
-  year?: string;
+  year?: string | undefined;
   createdAt: number;
 }
 
