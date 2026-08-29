@@ -1,5 +1,7 @@
 import { useEffect, type ReactNode } from "react";
 import { hydrateStore } from "@/lib/store";
+import { startCloudSync } from "@/lib/sync";
+import { AccountButton } from "./AccountButton";
 import { BottomNav } from "./BottomNav";
 
 interface Props {
