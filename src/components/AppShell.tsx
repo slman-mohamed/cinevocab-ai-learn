@@ -1,5 +1,7 @@
 import { useEffect, type ReactNode } from "react";
 import { hydrateStore } from "@/lib/store";
+import { startCloudSync } from "@/lib/sync";
+import { AccountButton } from "./AccountButton";
 import { BottomNav } from "./BottomNav";
 
 interface Props {
@@ -11,6 +13,7 @@ interface Props {
 export function AppShell({ tab, right, children }: Props) {
   useEffect(() => {
     hydrateStore();
+    startCloudSync();
   }, []);
 
   return (
@@ -26,7 +29,10 @@ export function AppShell({ tab, right, children }: Props) {
               <h1 className="mt-1 text-[13px] font-semibold text-fg">{tab}</h1>
             </div>
           </div>
-          <div className="flex items-center gap-2">{right}</div>
+          <div className="flex items-center gap-2">
+            {right}
+            <AccountButton />
+          </div>
         </header>
 
         <div className="h-px w-full bg-line" />

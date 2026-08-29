@@ -76,14 +76,7 @@ function Discover() {
   };
 
   return (
-    <AppShell
-      tab="Discover"
-      right={
-        <span className="rounded-full bg-accent/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-accent">
-          {words.length} saved
-        </span>
-      }
-    >
+    <AppShell tab="Discover">
       <MoviePicker movies={movies} words={words} selected={selected} />
 
       <form onSubmit={submit} className="pt-6">
