@@ -129,7 +129,9 @@ function RootComponent() {
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <Toaster
-        position="top-center"
+        position="bottom-center"
+        offset="100px"
+        mobileOffset="100px"
         toastOptions={{
           className:
             "!rounded-[9px] !border !border-line !bg-raised !text-fg !text-[12px] !font-medium",
