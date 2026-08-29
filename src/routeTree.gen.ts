@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ReviewRouteImport } from './routes/review'
 import { Route as WordBankRouteImport } from './routes/word-bank'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewRoute = ReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WordBankRoute = WordBankRouteImport.update({
@@ -25,27 +31,31 @@ const WordBankRoute = WordBankRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/review': typeof ReviewRoute
   '/word-bank': typeof WordBankRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/review': typeof ReviewRoute
   '/word-bank': typeof WordBankRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/review': typeof ReviewRoute
   '/word-bank': typeof WordBankRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/word-bank'
+  fullPaths: '/' | '/review' | '/word-bank'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/word-bank'
-  id: '__root__' | '/' | '/word-bank'
+  to: '/' | '/review' | '/word-bank'
+  id: '__root__' | '/' | '/review' | '/word-bank'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ReviewRoute: typeof ReviewRoute
   WordBankRoute: typeof WordBankRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/review': {
+      id: '/review'
+      path: '/review'
+      fullPath: '/review'
+      preLoaderRoute: typeof ReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/word-bank': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ReviewRoute: ReviewRoute,
   WordBankRoute: WordBankRoute,
 }
 export const routeTree = rootRouteImport
