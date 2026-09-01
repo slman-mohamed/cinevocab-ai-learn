@@ -6,6 +6,7 @@ import { Loader2, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { MoviePicker } from "@/components/MoviePicker";
 import { WordCard } from "@/components/WordCard";
+import { SentenceCard } from "@/components/SentenceCard";
 import { extractWords } from "@/lib/vocab.functions";
 import { notify } from "@/lib/notify";
 import { saveWord, useAppState } from "@/lib/store";
