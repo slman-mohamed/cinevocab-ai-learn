@@ -37,16 +37,21 @@ function Discover() {
   const selected = movies.find((m) => m.id === selectedMovieId) ?? null;
   const [sentence, setSentence] = useState("");
   const [results, setResults] = useState<ExtractedWord[]>([]);
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [explainedSentence, setExplainedSentence] = useState("");
   const [savedKeys, setSavedKeys] = useState<string[]>([]);
   const extract = useServerFn(extractWords);
 
   const mutation = useMutation({
     mutationFn: (text: string) =>
       extract({ data: { sentence: text, movieTitle: selected?.title } }),
-    onSuccess: (data) => {
+    onSuccess: (data, text) => {
       setResults(data.words);
+      setExplanation(data.explanation ?? null);
+      setExplainedSentence(text);
       setSavedKeys([]);
-      if (data.words.length === 0) notify("No difficult words found in that line", "error");
+      if (data.words.length === 0 && !data.explanation)
+        notify("No difficult words found in that line", "error");
     },
     onError: (error: Error) => notify(error.message, "error"),
   });
