@@ -6,6 +6,7 @@ import { Loader2, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { MoviePicker } from "@/components/MoviePicker";
 import { WordCard } from "@/components/WordCard";
+import { SentenceCard } from "@/components/SentenceCard";
 import { extractWords } from "@/lib/vocab.functions";
 import { notify } from "@/lib/notify";
 import { saveWord, useAppState } from "@/lib/store";
@@ -37,16 +38,21 @@ function Discover() {
   const selected = movies.find((m) => m.id === selectedMovieId) ?? null;
   const [sentence, setSentence] = useState("");
   const [results, setResults] = useState<ExtractedWord[]>([]);
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [explainedSentence, setExplainedSentence] = useState("");
   const [savedKeys, setSavedKeys] = useState<string[]>([]);
   const extract = useServerFn(extractWords);
 
   const mutation = useMutation({
     mutationFn: (text: string) =>
       extract({ data: { sentence: text, movieTitle: selected?.title } }),
-    onSuccess: (data) => {
+    onSuccess: (data, text) => {
       setResults(data.words);
+      setExplanation(data.explanation ?? null);
+      setExplainedSentence(text);
       setSavedKeys([]);
-      if (data.words.length === 0) notify("No difficult words found in that line", "error");
+      if (data.words.length === 0 && !data.explanation)
+        notify("No difficult words found in that line", "error");
     },
     onError: (error: Error) => notify(error.message, "error"),
   });
@@ -110,7 +116,7 @@ function Discover() {
         </button>
       </form>
 
-      {results.length > 0 ? (
+      {results.length > 0 || explanation ? (
         <>
           <div className="pt-7 pb-2">
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
@@ -118,6 +124,9 @@ function Discover() {
             </p>
           </div>
           <div className="space-y-3">
+            {explanation ? (
+              <SentenceCard sentence={explainedSentence} explanation={explanation} />
+            ) : null}
             {results.map((w, i) => (
               <WordCard
                 key={`${w.word}-${i}`}
