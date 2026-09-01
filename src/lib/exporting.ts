@@ -36,7 +36,33 @@ function escapeHtml(value: string) {
     .replace(/>/g, "&gt;");
 }
 
-/** Opens a print-ready document (Save as PDF) with correct IPA glyph rendering. */
+const FREQ: Record<string, { level: number; cls: string }> = {
+  "Very Common": { level: 4, cls: "f1" },
+  Common: { level: 3, cls: "f2" },
+  Uncommon: { level: 2, cls: "f3" },
+  Rare: { level: 1, cls: "f4" },
+};
+
+function posClass(pos: string) {
+  const p = pos.toLowerCase();
+  if (p.startsWith("noun") || p.includes("pronoun")) return "p-noun";
+  if (p.startsWith("verb") || p.includes("phrasal")) return "p-verb";
+  if (p.startsWith("adj")) return "p-adj";
+  if (p.startsWith("adv")) return "p-adv";
+  return "p-other";
+}
+
+function freqPill(frequency: string) {
+  const meta = FREQ[frequency] ?? FREQ["Common"]!;
+  const bars =
+    `<span class="bars">` +
+    `<span class="on">${"|".repeat(meta.level)}</span>` +
+    `<span class="off">${"|".repeat(4 - meta.level)}</span>` +
+    `</span>`;
+  return `<span class="pill ${meta.cls}">${bars}${escapeHtml(frequency)}</span>`;
+}
+
+/** Opens a print-ready card-grid document (Save as PDF) with correct IPA glyph rendering. */
 export function exportPdf(movies: Movie[], words: SavedWord[], docTitle: string) {
   const groups = movies
     .map((m) => ({ movie: m, items: words.filter((w) => w.movieId === m.id) }))
@@ -46,43 +72,63 @@ export function exportPdf(movies: Movie[], words: SavedWord[], docTitle: string)
     .map(
       (g) => `
       <section class="movie">
-        <h1>${escapeHtml(g.movie.title)}${g.movie.year ? ` <span class="year">(${escapeHtml(g.movie.year)})</span>` : ""}</h1>
-        <p class="count">${g.items.length} words</p>
+        <header class="mhead">
+          <h1>${escapeHtml(g.movie.title)}${g.movie.year ? ` <span class="year">(${escapeHtml(g.movie.year)})</span>` : ""}</h1>
+          <p class="count">${g.items.length} words</p>
+        </header>
+        <div class="grid">
         ${g.items
           .map(
             (w) => `
-          <article>
+          <article class="card">
             <h2>${escapeHtml(w.word)}</h2>
-            <p class="meta"><span class="pill ipa">${escapeHtml(w.ipa)}</span><span class="pill pos">${escapeHtml(w.partOfSpeech)}</span><span class="pill freq">${escapeHtml(w.frequency)}</span></p>
+            <p class="meta"><span class="pill ipa">${escapeHtml(w.ipa)}</span><span class="pill ${posClass(w.partOfSpeech)}">${escapeHtml(w.partOfSpeech)}</span>${freqPill(w.frequency)}</p>
             <p class="def">${escapeHtml(w.definition)}</p>
             <ul>${w.examples.map((ex) => `<li>${escapeHtml(ex)}</li>`).join("")}</ul>
           </article>`,
           )
           .join("")}
+        </div>
       </section>`,
     )
     .join("");
 
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(docTitle)}</title>
 <style>
-  @page { margin: 14mm; }
+  @page { margin: 10mm; }
   * { box-sizing: border-box; }
   body { font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif; color: #16181c; margin: 0; }
-  section.movie { page-break-after: always; }
-  section.movie:last-child { page-break-after: auto; }
-  h1 { font-size: 20pt; margin: 0 0 2pt; letter-spacing: -0.01em; }
-  h1 .year { font-size: 12pt; font-weight: 400; color: #6b7280; }
-  p.count { margin: 0 0 10pt; font-size: 8.5pt; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280; }
-  article { border-top: 0.6pt solid #d7dae0; padding: 6pt 0 5pt; page-break-inside: avoid; }
-  h2 { font-size: 13pt; margin: 0 0 3pt; }
-  p.meta { margin: 0 0 4pt; white-space: nowrap; }
-  .pill { display: inline-block; border-radius: 999px; padding: 1.5pt 6pt; font-size: 8.5pt; margin-right: 4pt; white-space: nowrap; }
-  .ipa { font-family: "Charis SIL", "Doulos SIL", "Gentium Plus", "Segoe UI", "DejaVu Sans", "Arial Unicode MS", sans-serif; background: #fdf1da; color: #8a5a06; }
-  .pos { background: #e7f1fb; color: #1f5f96; }
-  .freq { background: #eaf6ee; color: #1f6b3f; }
-  p.def { margin: 0 0 3pt; font-size: 10pt; line-height: 1.35; }
-  ul { margin: 0; padding-left: 12pt; }
-  li { font-size: 9.5pt; line-height: 1.3; color: #4b5158; margin: 0; }
+  section.movie { break-after: page; page-break-after: always; }
+  section.movie:last-child { break-after: auto; page-break-after: auto; }
+  .mhead { border-bottom: 1pt solid #16181c; padding-bottom: 3pt; margin-bottom: 7pt;
+    display: flex; align-items: baseline; justify-content: space-between; }
+  h1 { font-size: 17pt; margin: 0; letter-spacing: -0.01em; }
+  h1 .year { font-size: 11pt; font-weight: 400; color: #6b7280; }
+  p.count { margin: 0; font-size: 8pt; letter-spacing: 0.16em; text-transform: uppercase; color: #6b7280; }
+  .grid { column-count: 2; column-gap: 7pt; }
+  @media print { .grid { column-count: 2; } }
+  .card { break-inside: avoid; page-break-inside: avoid; -webkit-column-break-inside: avoid;
+    border: 0.6pt solid #d7dae0; border-radius: 5pt; background: #fbfbfc;
+    padding: 5pt 6pt 5.5pt; margin: 0 0 7pt; display: inline-block; width: 100%; }
+  h2 { font-size: 12pt; margin: 0 0 2.5pt; letter-spacing: -0.01em; }
+  p.meta { margin: 0 0 3.5pt; white-space: nowrap; overflow: hidden; }
+  .pill { display: inline-block; border-radius: 999px; padding: 1pt 5pt; font-size: 7.5pt;
+    margin-right: 3pt; white-space: nowrap; font-weight: 600; }
+  .bars { letter-spacing: 0.06em; margin-right: 2.5pt; }
+  .bars .off { opacity: 0.3; }
+  .ipa { font-family: "Charis SIL", "Doulos SIL", "Gentium Plus", "Segoe UI", "DejaVu Sans", "Arial Unicode MS", sans-serif; background: #fdf1da; color: #8a5a06; font-weight: 500; }
+  .p-noun { background: #fdeaea; color: #a52f2f; }
+  .p-verb { background: #e8f5ec; color: #1f6b3f; }
+  .p-adj { background: #e7f1fb; color: #1f5f96; }
+  .p-adv { background: #f3ecfb; color: #6b3fa0; }
+  .p-other { background: #eef0f3; color: #4b5158; }
+  .f1 { background: #e8f5ec; color: #1f6b3f; }
+  .f2 { background: #eaf3fb; color: #1f5f96; }
+  .f3 { background: #fdf3e3; color: #8a5a06; }
+  .f4 { background: #fdeaea; color: #a52f2f; }
+  p.def { margin: 0 0 3pt; font-size: 9pt; line-height: 1.3; }
+  ul { margin: 0; padding-left: 10pt; border-top: 0.5pt solid #e3e5ea; padding-top: 3pt; }
+  li { font-size: 8.2pt; line-height: 1.28; color: #4b5158; margin: 0 0 1pt; }
 </style></head><body>${body || "<p>No words saved yet.</p>"}</body></html>`;
 
   const win = window.open("", "_blank");
@@ -93,3 +139,4 @@ export function exportPdf(movies: Movie[], words: SavedWord[], docTitle: string)
   setTimeout(() => win.print(), 400);
   return true;
 }
+
