@@ -115,7 +115,7 @@ function Discover() {
         </button>
       </form>
 
-      {results.length > 0 ? (
+      {results.length > 0 || explanation ? (
         <>
           <div className="pt-7 pb-2">
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
@@ -123,6 +123,9 @@ function Discover() {
             </p>
           </div>
           <div className="space-y-3">
+            {explanation ? (
+              <SentenceCard sentence={explainedSentence} explanation={explanation} />
+            ) : null}
             {results.map((w, i) => (
               <WordCard
                 key={`${w.word}-${i}`}
