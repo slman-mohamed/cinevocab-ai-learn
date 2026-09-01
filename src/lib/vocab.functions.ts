@@ -15,7 +15,10 @@ const WordSchema = z.object({
   examples: z.array(z.string()),
 });
 
-const ResultSchema = z.object({ words: z.array(WordSchema) });
+const ResultSchema = z.object({
+  explanation: z.string().nullish(),
+  words: z.array(WordSchema),
+});
 
 function stripFence(text: string) {
   const trimmed = text.trim();
