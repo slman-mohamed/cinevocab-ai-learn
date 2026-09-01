@@ -103,6 +103,7 @@ Respond with ONLY JSON: {"explanation": string|null, "words":[...]}.`;
     }
 
     return {
+      explanation: result.data.explanation?.trim() || null,
       words: result.data.words.map((w) => ({
         ...w,
         examples: w.examples.slice(0, 3),
