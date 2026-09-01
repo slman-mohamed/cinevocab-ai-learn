@@ -53,7 +53,7 @@ function posClass(pos: string) {
 }
 
 function freqPill(frequency: string) {
-  const meta = FREQ[frequency] ?? FREQ.Common!;
+  const meta = FREQ[frequency] ?? FREQ["Common"]!;
   const bars =
     `<span class="bars">` +
     `<span class="on">${"|".repeat(meta.level)}</span>` +
