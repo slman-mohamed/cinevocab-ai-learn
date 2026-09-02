@@ -156,10 +156,21 @@ function Discover() {
       ) : (
         <p className="pt-10 text-center text-[13px] leading-relaxed text-muted">
           {movies.length === 0
-            ? "Add the movie you're watching, then paste a line of dialogue."
+            ? "Paste a line of dialogue — you can pick a movie for the card later."
             : "Paste a line of dialogue and CineVocab pulls out the words worth learning."}
         </p>
       )}
+
+      <MovieChooserDialog
+        open={pending !== null}
+        onOpenChange={(open) => setPending(open ? pending : null)}
+        movies={movies}
+        title="Which movie should this card go to?"
+        onPick={(movieId) => {
+          if (pending) commitSave(pending, movieId);
+          setPending(null);
+        }}
+      />
     </AppShell>
   );
 }
