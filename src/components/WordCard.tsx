@@ -9,10 +9,11 @@ interface Props {
   saved?: boolean;
   meta?: string;
   onSave?: () => void;
+  onMove?: () => void;
   onDelete?: () => void;
 }
 
-export function WordCard({ word, index = 0, saved, meta, onSave, onDelete }: Props) {
+export function WordCard({ word, index = 0, saved, meta, onSave, onMove, onDelete }: Props) {
   return (
     <article
       className="slip rounded-xl border border-line bg-surface p-4"
