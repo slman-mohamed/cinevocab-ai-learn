@@ -4,6 +4,8 @@ export interface Movie {
   id: string;
   title: string;
   year?: string | undefined;
+  /** optional poster image, stored as a compact data URL */
+  poster?: string | undefined;
   createdAt: number;
 }
 

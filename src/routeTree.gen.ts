@@ -11,7 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReviewRouteImport } from './routes/review'
-import { Route as WordBankRouteImport } from './routes/word-bank'
+import { Route as WordBankIndexRouteImport } from './routes/word-bank.index'
+import { Route as WordBankMovieIdRouteImport } from './routes/word-bank.$movieId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -23,40 +24,49 @@ const ReviewRoute = ReviewRouteImport.update({
   path: '/review',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WordBankRoute = WordBankRouteImport.update({
-  id: '/word-bank',
-  path: '/word-bank',
+const WordBankIndexRoute = WordBankIndexRouteImport.update({
+  id: '/word-bank/',
+  path: '/word-bank/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WordBankMovieIdRoute = WordBankMovieIdRouteImport.update({
+  id: '/word-bank/$movieId',
+  path: '/word-bank/$movieId',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/review': typeof ReviewRoute
-  '/word-bank': typeof WordBankRoute
+  '/word-bank/$movieId': typeof WordBankMovieIdRoute
+  '/word-bank/': typeof WordBankIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/review': typeof ReviewRoute
-  '/word-bank': typeof WordBankRoute
+  '/word-bank/$movieId': typeof WordBankMovieIdRoute
+  '/word-bank': typeof WordBankIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/review': typeof ReviewRoute
-  '/word-bank': typeof WordBankRoute
+  '/word-bank/$movieId': typeof WordBankMovieIdRoute
+  '/word-bank/': typeof WordBankIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/review' | '/word-bank'
+  fullPaths: '/' | '/review' | '/word-bank/$movieId' | '/word-bank/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/review' | '/word-bank'
-  id: '__root__' | '/' | '/review' | '/word-bank'
+  to: '/' | '/review' | '/word-bank/$movieId' | '/word-bank'
+  id: '__root__' | '/' | '/review' | '/word-bank/$movieId' | '/word-bank/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ReviewRoute: typeof ReviewRoute
-  WordBankRoute: typeof WordBankRoute
+  WordBankMovieIdRoute: typeof WordBankMovieIdRoute
+  WordBankIndexRoute: typeof WordBankIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,11 +85,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/word-bank': {
-      id: '/word-bank'
+    '/word-bank/': {
+      id: '/word-bank/'
       path: '/word-bank'
-      fullPath: '/word-bank'
-      preLoaderRoute: typeof WordBankRouteImport
+      fullPath: '/word-bank/'
+      preLoaderRoute: typeof WordBankIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/word-bank/$movieId': {
+      id: '/word-bank/$movieId'
+      path: '/word-bank/$movieId'
+      fullPath: '/word-bank/$movieId'
+      preLoaderRoute: typeof WordBankMovieIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -88,7 +105,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ReviewRoute: ReviewRoute,
-  WordBankRoute: WordBankRoute,
+  WordBankMovieIdRoute: WordBankMovieIdRoute,
+  WordBankIndexRoute: WordBankIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

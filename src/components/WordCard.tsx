@@ -1,4 +1,4 @@
-import { Bookmark, BookmarkCheck, Trash2 } from "lucide-react";
+import { Bookmark, BookmarkCheck, FolderInput, Trash2 } from "lucide-react";
 import { PillBadges } from "./PillBadges";
 import type { ExtractedWord, SavedWord } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -9,10 +9,11 @@ interface Props {
   saved?: boolean;
   meta?: string;
   onSave?: () => void;
+  onMove?: () => void;
   onDelete?: () => void;
 }
 
-export function WordCard({ word, index = 0, saved, meta, onSave, onDelete }: Props) {
+export function WordCard({ word, index = 0, saved, meta, onSave, onMove, onDelete }: Props) {
   return (
     <article
       className="slip rounded-xl border border-line bg-surface p-4"
@@ -39,6 +40,16 @@ export function WordCard({ word, index = 0, saved, meta, onSave, onDelete }: Pro
             )}
           >
             {saved ? <BookmarkCheck className="size-4" /> : <Bookmark className="size-4" />}
+          </button>
+        ) : null}
+        {onMove ? (
+          <button
+            type="button"
+            onClick={onMove}
+            aria-label="Move word to another movie"
+            className="grid size-9 shrink-0 place-items-center rounded-[9px] border border-line bg-raised text-muted transition-colors hover:border-accent/50 hover:text-accent"
+          >
+            <FolderInput className="size-4" />
           </button>
         ) : null}
         {onDelete ? (

@@ -91,10 +91,18 @@ const id = () =>
     ? crypto.randomUUID()
     : Math.random().toString(36).slice(2);
 
-export function addMovie(title: string, year?: string): Movie {
-  const movie: Movie = { id: id(), title: title.trim(), year: year?.trim() || undefined, createdAt: Date.now() };
+export function addMovie(title: string, poster?: string): Movie {
+  const movie: Movie = { id: id(), title: title.trim(), poster: poster || undefined, createdAt: Date.now() };
   set({ ...state, movies: [...state.movies, movie], selectedMovieId: movie.id });
   return movie;
+}
+
+/** Move a saved word from one movie folder to another. */
+export function moveWord(wordId: string, movieId: string) {
+  set({
+    ...state,
+    words: state.words.map((w) => (w.id === wordId ? { ...w, movieId } : w)),
+  });
 }
 
 export function removeMovie(movieId: string) {

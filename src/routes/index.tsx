@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Loader2, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { MoviePicker } from "@/components/MoviePicker";
+import { MovieChooserDialog } from "@/components/MoveWordDialog";
 import { WordCard } from "@/components/WordCard";
 import { SentenceCard } from "@/components/SentenceCard";
 import { extractWords } from "@/lib/vocab.functions";
@@ -41,6 +42,7 @@ function Discover() {
   const [explanation, setExplanation] = useState<string | null>(null);
   const [explainedSentence, setExplainedSentence] = useState("");
   const [savedKeys, setSavedKeys] = useState<string[]>([]);
+  const [pending, setPending] = useState<ExtractedWord | null>(null);
   const extract = useServerFn(extractWords);
 
   const mutation = useMutation({
@@ -60,25 +62,32 @@ function Discover() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!sentence.trim()) return;
-    if (!selected) {
-      notify("Pick a movie first", "error");
-      return;
-    }
     mutation.mutate(sentence.trim());
   };
 
+  const commitSave = (word: ExtractedWord, movieId: string) => {
+    const already = words.some(
+      (w) => w.movieId === movieId && w.word.toLowerCase() === word.word.toLowerCase(),
+    );
+    if (already) {
+      notify(`"${word.word}" is already in that movie`, "error");
+      return;
+    }
+    saveWord(word, movieId, explainedSentence || sentence.trim());
+    setSavedKeys((k) => [...k, word.word]);
+    notify(`Saved "${word.word}" to Word Bank`);
+  };
+
   const onSave = (word: ExtractedWord) => {
-    if (!selected) return;
-    const alreadySaved =
-      savedKeys.includes(word.word) ||
-      words.some((w) => w.movieId === selected.id && w.word.toLowerCase() === word.word.toLowerCase());
-    if (alreadySaved) {
+    if (!selected) {
+      setPending(word);
+      return;
+    }
+    if (savedKeys.includes(word.word)) {
       notify(`"${word.word}" is already in your Word Bank`, "error");
       return;
     }
-    saveWord(word, selected.id, sentence.trim());
-    setSavedKeys((k) => [...k, word.word]);
-    notify(`Saved "${word.word}" to Word Bank`);
+    commitSave(word, selected.id);
   };
 
   return (
@@ -134,9 +143,10 @@ function Discover() {
                 index={i}
                 saved={
                   savedKeys.includes(w.word) ||
-                  words.some(
-                    (s) => s.movieId === selected?.id && s.word.toLowerCase() === w.word.toLowerCase(),
-                  )
+                  (!!selected &&
+                    words.some(
+                      (s) => s.movieId === selected.id && s.word.toLowerCase() === w.word.toLowerCase(),
+                    ))
                 }
                 onSave={() => onSave(w)}
               />
@@ -146,10 +156,21 @@ function Discover() {
       ) : (
         <p className="pt-10 text-center text-[13px] leading-relaxed text-muted">
           {movies.length === 0
-            ? "Add the movie you're watching, then paste a line of dialogue."
+            ? "Paste a line of dialogue — you can pick a movie for the card later."
             : "Paste a line of dialogue and CineVocab pulls out the words worth learning."}
         </p>
       )}
+
+      <MovieChooserDialog
+        open={pending !== null}
+        onOpenChange={(open) => setPending(open ? pending : null)}
+        movies={movies}
+        title="Which movie should this card go to?"
+        onPick={(movieId) => {
+          if (pending) commitSave(pending, movieId);
+          setPending(null);
+        }}
+      />
     </AppShell>
   );
 }
