@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Loader2, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { MoviePicker } from "@/components/MoviePicker";
+import { MovieChooserDialog } from "@/components/MoveWordDialog";
 import { WordCard } from "@/components/WordCard";
 import { SentenceCard } from "@/components/SentenceCard";
 import { extractWords } from "@/lib/vocab.functions";
@@ -41,6 +42,7 @@ function Discover() {
   const [explanation, setExplanation] = useState<string | null>(null);
   const [explainedSentence, setExplainedSentence] = useState("");
   const [savedKeys, setSavedKeys] = useState<string[]>([]);
+  const [pending, setPending] = useState<ExtractedWord | null>(null);
   const extract = useServerFn(extractWords);
 
   const mutation = useMutation({
