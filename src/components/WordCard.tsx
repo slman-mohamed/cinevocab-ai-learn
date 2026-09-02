@@ -42,6 +42,16 @@ export function WordCard({ word, index = 0, saved, meta, onSave, onMove, onDelet
             {saved ? <BookmarkCheck className="size-4" /> : <Bookmark className="size-4" />}
           </button>
         ) : null}
+        {onMove ? (
+          <button
+            type="button"
+            onClick={onMove}
+            aria-label="Move word to another movie"
+            className="grid size-9 shrink-0 place-items-center rounded-[9px] border border-line bg-raised text-muted transition-colors hover:border-accent/50 hover:text-accent"
+          >
+            <FolderInput className="size-4" />
+          </button>
+        ) : null}
         {onDelete ? (
           <button
             type="button"
