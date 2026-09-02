@@ -143,9 +143,10 @@ function Discover() {
                 index={i}
                 saved={
                   savedKeys.includes(w.word) ||
-                  words.some(
-                    (s) => s.movieId === selected?.id && s.word.toLowerCase() === w.word.toLowerCase(),
-                  )
+                  (!!selected &&
+                    words.some(
+                      (s) => s.movieId === selected.id && s.word.toLowerCase() === w.word.toLowerCase(),
+                    ))
                 }
                 onSave={() => onSave(w)}
               />
