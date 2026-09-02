@@ -60,25 +60,32 @@ function Discover() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!sentence.trim()) return;
-    if (!selected) {
-      notify("Pick a movie first", "error");
-      return;
-    }
     mutation.mutate(sentence.trim());
   };
 
+  const commitSave = (word: ExtractedWord, movieId: string) => {
+    const already = words.some(
+      (w) => w.movieId === movieId && w.word.toLowerCase() === word.word.toLowerCase(),
+    );
+    if (already) {
+      notify(`"${word.word}" is already in that movie`, "error");
+      return;
+    }
+    saveWord(word, movieId, explainedSentence || sentence.trim());
+    setSavedKeys((k) => [...k, word.word]);
+    notify(`Saved "${word.word}" to Word Bank`);
+  };
+
   const onSave = (word: ExtractedWord) => {
-    if (!selected) return;
-    const alreadySaved =
-      savedKeys.includes(word.word) ||
-      words.some((w) => w.movieId === selected.id && w.word.toLowerCase() === word.word.toLowerCase());
-    if (alreadySaved) {
+    if (!selected) {
+      setPending(word);
+      return;
+    }
+    if (savedKeys.includes(word.word)) {
       notify(`"${word.word}" is already in your Word Bank`, "error");
       return;
     }
-    saveWord(word, selected.id, sentence.trim());
-    setSavedKeys((k) => [...k, word.word]);
-    notify(`Saved "${word.word}" to Word Bank`);
+    commitSave(word, selected.id);
   };
 
   return (
