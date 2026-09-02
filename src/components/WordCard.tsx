@@ -1,4 +1,4 @@
-import { Bookmark, BookmarkCheck, Trash2 } from "lucide-react";
+import { Bookmark, BookmarkCheck, FolderInput, Trash2 } from "lucide-react";
 import { PillBadges } from "./PillBadges";
 import type { ExtractedWord, SavedWord } from "@/lib/types";
 import { cn } from "@/lib/utils";

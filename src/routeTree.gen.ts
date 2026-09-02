@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReviewRouteImport } from './routes/review'
+import { Route as WordBankIndexRouteImport } from './routes/word-bank.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const ReviewRoute = ReviewRouteImport.update({
   path: '/review',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WordBankIndexRoute = WordBankIndexRouteImport.update({
+  id: '/word-bank/',
+  path: '/word-bank/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/review': typeof ReviewRoute
+  '/word-bank/': typeof WordBankIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/review': typeof ReviewRoute
+  '/word-bank': typeof WordBankIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/review': typeof ReviewRoute
+  '/word-bank/': typeof WordBankIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/review'
+  fullPaths: '/' | '/review' | '/word-bank/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/review'
-  id: '__root__' | '/' | '/review'
+  to: '/' | '/review' | '/word-bank'
+  id: '__root__' | '/' | '/review' | '/word-bank/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ReviewRoute: typeof ReviewRoute
+  WordBankIndexRoute: typeof WordBankIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/word-bank/': {
+      id: '/word-bank/'
+      path: '/word-bank'
+      fullPath: '/word-bank/'
+      preLoaderRoute: typeof WordBankIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ReviewRoute: ReviewRoute,
+  WordBankIndexRoute: WordBankIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
