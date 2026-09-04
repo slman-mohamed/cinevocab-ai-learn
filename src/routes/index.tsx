@@ -10,8 +10,9 @@ import { WordCard } from "@/components/WordCard";
 import { SentenceCard } from "@/components/SentenceCard";
 import { extractWords } from "@/lib/vocab.functions";
 import { notify } from "@/lib/notify";
-import { saveWord, useAppState } from "@/lib/store";
-import type { ExtractedWord } from "@/lib/types";
+import { saveWord, updateWord, useAppState } from "@/lib/store";
+import type { ExtractedWord, QAEntry } from "@/lib/types";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
