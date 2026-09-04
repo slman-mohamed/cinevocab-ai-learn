@@ -152,11 +152,11 @@ function Discover() {
         >
           {mutation.isPending ? (
             <>
-              <Loader2 className="size-4 animate-spin" /> Reading the scene…
+              <Loader2 className="size-4 animate-spin" /> Working out the meaning…
             </>
           ) : (
             <>
-              <Sparkles className="size-4" /> Extract words
+              <Sparkles className="size-4" /> Understand the meaning
             </>
           )}
         </button>
@@ -166,7 +166,7 @@ function Discover() {
         <>
           <div className="pt-7 pb-2">
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
-              Extracted · {results.length} {results.length === 1 ? "word" : "words"}
+              Worth learning · {results.length} {results.length === 1 ? "word" : "words"}
             </p>
           </div>
           <div className="space-y-3">
