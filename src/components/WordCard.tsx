@@ -1,6 +1,10 @@
-import { Bookmark, BookmarkCheck, FolderInput, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { Bookmark, BookmarkCheck, FolderInput, Loader2, SendHorizonal, Trash2 } from "lucide-react";
 import { PillBadges } from "./PillBadges";
-import type { ExtractedWord, SavedWord } from "@/lib/types";
+import { askAboutWord } from "@/lib/vocab.functions";
+import { notify } from "@/lib/notify";
+import type { ExtractedWord, QAEntry, SavedWord } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -8,12 +12,54 @@ interface Props {
   index?: number;
   saved?: boolean;
   meta?: string;
+  sourceSentence?: string;
   onSave?: () => void;
   onMove?: () => void;
   onDelete?: () => void;
+  /** persists the question/answer thread so it survives saving and appears in the Word Bank */
+  onQaChange?: (qa: QAEntry[]) => void;
 }
 
-export function WordCard({ word, index = 0, saved, meta, onSave, onMove, onDelete }: Props) {
+export function WordCard({
+  word,
+  index = 0,
+  saved,
+  meta,
+  sourceSentence,
+  onSave,
+  onMove,
+  onDelete,
+  onQaChange,
+}: Props) {
+  const ask = useServerFn(askAboutWord);
+  const [question, setQuestion] = useState("");
+  const [asking, setAsking] = useState(false);
+  const qa = word.qa ?? [];
+
+  const submitQuestion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = question.trim();
+    if (!q || asking) return;
+    setAsking(true);
+    try {
+      const res = await ask({
+        data: {
+          word: word.word,
+          definition: word.definition,
+          sentence: sourceSentence ?? (word as SavedWord).sourceSentence,
+          question: q,
+        },
+      });
+      onQaChange?.([...qa, { question: q, answer: res.answer }]);
+      setQuestion("");
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "Could not answer that question", "error");
+    } finally {
+      setAsking(false);
+    }
+  };
+
+
   return (
     <article
       className="slip rounded-xl border border-line bg-surface p-4"
@@ -75,6 +121,44 @@ export function WordCard({ word, index = 0, saved, meta, onSave, onMove, onDelet
           </p>
         ))}
       </div>
+
+      {onQaChange ? (
+        <div className="mt-3.5 border-t border-line pt-3">
+          {qa.length > 0 ? (
+            <div className="mb-2.5 space-y-2.5">
+              {qa.map((entry, i) => (
+                <div key={i} className="rounded-[10px] border border-line bg-raised p-2.5">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
+                    {entry.question}
+                  </p>
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-fg/90">{entry.answer}</p>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          <form onSubmit={submitQuestion} className="flex items-center gap-2">
+            <input
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder={`Ask about "${word.word}"…`}
+              className="min-w-0 flex-1 rounded-[9px] border border-line bg-raised px-2.5 py-2 text-[13px] text-fg outline-none placeholder:text-muted focus:border-accent/50"
+            />
+            <button
+              type="submit"
+              disabled={asking || !question.trim()}
+              aria-label="Ask about this word"
+              className="grid size-9 shrink-0 place-items-center rounded-[9px] bg-accent text-accent-foreground disabled:opacity-40"
+            >
+              {asking ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <SendHorizonal className="size-4" />
+              )}
+            </button>
+          </form>
+        </div>
+      ) : null}
     </article>
+
   );
 }

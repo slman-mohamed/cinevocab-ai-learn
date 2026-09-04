@@ -9,6 +9,11 @@ export interface Movie {
   createdAt: number;
 }
 
+export interface QAEntry {
+  question: string;
+  answer: string;
+}
+
 export interface ExtractedWord {
   word: string;
   ipa: string;
@@ -16,7 +21,10 @@ export interface ExtractedWord {
   frequency: FrequencyLevel;
   definition: string;
   examples: string[];
+  /** follow-up questions the user asked about this word, with AI answers */
+  qa?: QAEntry[] | undefined;
 }
+
 
 export interface SavedWord extends ExtractedWord {
   id: string;

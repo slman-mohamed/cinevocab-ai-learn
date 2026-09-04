@@ -10,8 +10,9 @@ import { WordCard } from "@/components/WordCard";
 import { SentenceCard } from "@/components/SentenceCard";
 import { extractWords } from "@/lib/vocab.functions";
 import { notify } from "@/lib/notify";
-import { saveWord, useAppState } from "@/lib/store";
-import type { ExtractedWord } from "@/lib/types";
+import { saveWord, updateWord, useAppState } from "@/lib/store";
+import type { ExtractedWord, QAEntry } from "@/lib/types";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -42,8 +43,16 @@ function Discover() {
   const [explanation, setExplanation] = useState<string | null>(null);
   const [explainedSentence, setExplainedSentence] = useState("");
   const [savedKeys, setSavedKeys] = useState<string[]>([]);
+  const [savedIds, setSavedIds] = useState<Record<string, string>>({});
   const [pending, setPending] = useState<ExtractedWord | null>(null);
   const extract = useServerFn(extractWords);
+
+  const onQaChange = (word: ExtractedWord, qa: QAEntry[]) => {
+    setResults((rs) => rs.map((r) => (r.word === word.word ? { ...r, qa } : r)));
+    const id = savedIds[word.word];
+    if (id) updateWord(id, { qa });
+  };
+
 
   const mutation = useMutation({
     mutationFn: (text: string) =>
@@ -53,6 +62,7 @@ function Discover() {
       setExplanation(data.explanation ?? null);
       setExplainedSentence(text);
       setSavedKeys([]);
+      setSavedIds({});
       if (data.words.length === 0 && !data.explanation)
         notify("No difficult words found in that line", "error");
     },
@@ -73,10 +83,13 @@ function Discover() {
       notify(`"${word.word}" is already in that movie`, "error");
       return;
     }
-    saveWord(word, movieId, explainedSentence || sentence.trim());
+    const latest = results.find((r) => r.word === word.word) ?? word;
+    const savedCard = saveWord(latest, movieId, explainedSentence || sentence.trim());
     setSavedKeys((k) => [...k, word.word]);
+    setSavedIds((m) => ({ ...m, [word.word]: savedCard.id }));
     notify(`Saved "${word.word}" to Word Bank`);
   };
+
 
   const onSave = (word: ExtractedWord) => {
     if (!selected) {
@@ -148,7 +161,10 @@ function Discover() {
                       (s) => s.movieId === selected.id && s.word.toLowerCase() === w.word.toLowerCase(),
                     ))
                 }
+                sourceSentence={explainedSentence || sentence.trim()}
                 onSave={() => onSave(w)}
+                onQaChange={(qa) => onQaChange(w, qa)}
+
               />
             ))}
           </div>
