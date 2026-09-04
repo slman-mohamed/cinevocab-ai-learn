@@ -10,7 +10,7 @@ import { WordCard } from "@/components/WordCard";
 import { SentenceCard } from "@/components/SentenceCard";
 import { extractWords } from "@/lib/vocab.functions";
 import { notify } from "@/lib/notify";
-import { saveWord, updateWord, useAppState } from "@/lib/store";
+import { deleteWord, saveWord, updateWord, useAppState } from "@/lib/store";
 import type { ExtractedWord, QAEntry } from "@/lib/types";
 
 
@@ -120,16 +120,28 @@ function Discover() {
       <MoviePicker movies={movies} words={words} selected={selected} />
 
       <form onSubmit={submit} className="pt-6">
-        <div className="rounded-xl border border-line bg-surface">
+        <div className="relative rounded-xl border border-line bg-surface">
           <div className="flex items-center gap-2 px-3.5 pt-3.5">
             <span className="size-1.5 rounded-full bg-accent" />
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Paste a line</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
+              What did you hear?
+            </p>
           </div>
+          {sentence ? (
+            <button
+              type="button"
+              onClick={() => setSentence("")}
+              aria-label="Clear the text"
+              className="absolute right-2.5 top-2.5 grid size-7 place-items-center rounded-[7px] border border-line bg-raised text-muted transition-colors hover:border-destructive/50 hover:text-destructive"
+            >
+              <X className="size-3.5" />
+            </button>
+          ) : null}
           <textarea
             value={sentence}
             onChange={(e) => setSentence(e.target.value)}
             rows={3}
-            placeholder="Paste the sentence you heard in the scene…"
+            placeholder="Type or paste a word, phrase or full line from the scene…"
             className="w-full resize-none bg-transparent px-3.5 pt-2.5 pb-3.5 text-[15px] leading-relaxed text-fg outline-none placeholder:text-muted"
           />
         </div>
