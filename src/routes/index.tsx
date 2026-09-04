@@ -61,6 +61,7 @@ function Discover() {
       setExplanation(data.explanation ?? null);
       setExplainedSentence(text);
       setSavedKeys([]);
+      setSavedIds({});
       if (data.words.length === 0 && !data.explanation)
         notify("No difficult words found in that line", "error");
     },
@@ -81,10 +82,13 @@ function Discover() {
       notify(`"${word.word}" is already in that movie`, "error");
       return;
     }
-    saveWord(word, movieId, explainedSentence || sentence.trim());
+    const latest = results.find((r) => r.word === word.word) ?? word;
+    const savedCard = saveWord(latest, movieId, explainedSentence || sentence.trim());
     setSavedKeys((k) => [...k, word.word]);
+    setSavedIds((m) => ({ ...m, [word.word]: savedCard.id }));
     notify(`Saved "${word.word}" to Word Bank`);
   };
+
 
   const onSave = (word: ExtractedWord) => {
     if (!selected) {
