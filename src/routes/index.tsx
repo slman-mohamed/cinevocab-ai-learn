@@ -42,8 +42,16 @@ function Discover() {
   const [explanation, setExplanation] = useState<string | null>(null);
   const [explainedSentence, setExplainedSentence] = useState("");
   const [savedKeys, setSavedKeys] = useState<string[]>([]);
+  const [savedIds, setSavedIds] = useState<Record<string, string>>({});
   const [pending, setPending] = useState<ExtractedWord | null>(null);
   const extract = useServerFn(extractWords);
+
+  const onQaChange = (word: ExtractedWord, qa: QAEntry[]) => {
+    setResults((rs) => rs.map((r) => (r.word === word.word ? { ...r, qa } : r)));
+    const id = savedIds[word.word];
+    if (id) updateWord(id, { qa });
+  };
+
 
   const mutation = useMutation({
     mutationFn: (text: string) =>
