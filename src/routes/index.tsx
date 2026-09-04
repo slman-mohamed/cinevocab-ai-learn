@@ -92,12 +92,24 @@ function Discover() {
 
 
   const onSave = (word: ExtractedWord) => {
-    if (!selected) {
-      setPending(word);
+    const existing =
+      savedIds[word.word] ??
+      (selected
+        ? words.find(
+            (w) => w.movieId === selected.id && w.word.toLowerCase() === word.word.toLowerCase(),
+          )?.id
+        : undefined);
+
+    if (existing) {
+      deleteWord(existing);
+      setSavedKeys((k) => k.filter((w) => w !== word.word));
+      setSavedIds(({ [word.word]: _removed, ...rest }) => rest);
+      notify(`Removed "${word.word}" from your Word Bank`);
       return;
     }
-    if (savedKeys.includes(word.word)) {
-      notify(`"${word.word}" is already in your Word Bank`, "error");
+
+    if (!selected) {
+      setPending(word);
       return;
     }
     commitSave(word, selected.id);
