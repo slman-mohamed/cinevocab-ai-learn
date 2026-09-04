@@ -161,7 +161,10 @@ function Discover() {
                       (s) => s.movieId === selected.id && s.word.toLowerCase() === w.word.toLowerCase(),
                     ))
                 }
+                sourceSentence={explainedSentence || sentence.trim()}
                 onSave={() => onSave(w)}
+                onQaChange={(qa) => onQaChange(w, qa)}
+
               />
             ))}
           </div>
