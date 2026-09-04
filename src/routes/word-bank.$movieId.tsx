@@ -6,7 +6,7 @@ import { ExportDialog } from "@/components/ExportDialog";
 import { MovieThumb } from "@/components/MovieThumb";
 import { MovieChooserDialog } from "@/components/MoveWordDialog";
 import { WordCard } from "@/components/WordCard";
-import { deleteWord, moveWord, useAppState } from "@/lib/store";
+import { deleteWord, moveWord, updateWord, useAppState } from "@/lib/store";
 import { dueLabel } from "@/lib/srs";
 import { notify } from "@/lib/notify";
 
