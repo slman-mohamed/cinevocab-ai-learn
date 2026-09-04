@@ -121,6 +121,44 @@ export function WordCard({
           </p>
         ))}
       </div>
+
+      {onQaChange ? (
+        <div className="mt-3.5 border-t border-line pt-3">
+          {qa.length > 0 ? (
+            <div className="mb-2.5 space-y-2.5">
+              {qa.map((entry, i) => (
+                <div key={i} className="rounded-[10px] border border-line bg-raised p-2.5">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
+                    {entry.question}
+                  </p>
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-fg/90">{entry.answer}</p>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          <form onSubmit={submitQuestion} className="flex items-center gap-2">
+            <input
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder={`Ask about "${word.word}"…`}
+              className="min-w-0 flex-1 rounded-[9px] border border-line bg-raised px-2.5 py-2 text-[13px] text-fg outline-none placeholder:text-muted focus:border-accent/50"
+            />
+            <button
+              type="submit"
+              disabled={asking || !question.trim()}
+              aria-label="Ask about this word"
+              className="grid size-9 shrink-0 place-items-center rounded-[9px] bg-accent text-accent-foreground disabled:opacity-40"
+            >
+              {asking ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <SendHorizonal className="size-4" />
+              )}
+            </button>
+          </form>
+        </div>
+      ) : null}
     </article>
+
   );
 }
