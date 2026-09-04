@@ -76,8 +76,7 @@ export function WordCard({
           <button
             type="button"
             onClick={onSave}
-            disabled={saved}
-            aria-label={saved ? "Already saved" : "Save word"}
+            aria-label={saved ? "Remove from Word Bank" : "Save word"}
             className={cn(
               "grid size-9 shrink-0 place-items-center rounded-[9px] border transition-all active:scale-90",
               saved

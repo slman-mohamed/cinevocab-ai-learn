@@ -35,10 +35,10 @@ export function MoviePicker({ movies, words, selected }: Props) {
         <MovieThumb movie={selected} className="size-[52px] rounded-[6px]" textClassName="text-lg" />
         <span className="min-w-0 flex-1">
           <span className="block font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
-            Now scanning
+            Watching
           </span>
           <span className="block truncate text-[15px] font-semibold text-fg">
-            {selected ? selected.title : "Choose a movie (optional)"}
+            {selected ? selected.title : "Choose a movie"}
           </span>
         </span>
         <span className="flex items-center rounded-[7px] bg-raised px-2.5 py-2 text-muted">

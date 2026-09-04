@@ -60,7 +60,7 @@ export function AddMovieDialog({ open, onOpenChange, onAdded }: Props) {
 
           <div>
             <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
-              Poster <span className="normal-case tracking-normal">(optional)</span>
+              Poster
             </label>
             <input
               ref={fileRef}

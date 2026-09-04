@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation } from "@tanstack/react-query";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { MoviePicker } from "@/components/MoviePicker";
 import { MovieChooserDialog } from "@/components/MoveWordDialog";
@@ -10,7 +10,7 @@ import { WordCard } from "@/components/WordCard";
 import { SentenceCard } from "@/components/SentenceCard";
 import { extractWords } from "@/lib/vocab.functions";
 import { notify } from "@/lib/notify";
-import { saveWord, updateWord, useAppState } from "@/lib/store";
+import { deleteWord, saveWord, updateWord, useAppState } from "@/lib/store";
 import type { ExtractedWord, QAEntry } from "@/lib/types";
 
 
@@ -92,12 +92,24 @@ function Discover() {
 
 
   const onSave = (word: ExtractedWord) => {
-    if (!selected) {
-      setPending(word);
+    const existing =
+      savedIds[word.word] ??
+      (selected
+        ? words.find(
+            (w) => w.movieId === selected.id && w.word.toLowerCase() === word.word.toLowerCase(),
+          )?.id
+        : undefined);
+
+    if (existing) {
+      deleteWord(existing);
+      setSavedKeys((k) => k.filter((w) => w !== word.word));
+      setSavedIds(({ [word.word]: _removed, ...rest }) => rest);
+      notify(`Removed "${word.word}" from your Word Bank`);
       return;
     }
-    if (savedKeys.includes(word.word)) {
-      notify(`"${word.word}" is already in your Word Bank`, "error");
+
+    if (!selected) {
+      setPending(word);
       return;
     }
     commitSave(word, selected.id);
@@ -108,16 +120,28 @@ function Discover() {
       <MoviePicker movies={movies} words={words} selected={selected} />
 
       <form onSubmit={submit} className="pt-6">
-        <div className="rounded-xl border border-line bg-surface">
+        <div className="relative rounded-xl border border-line bg-surface">
           <div className="flex items-center gap-2 px-3.5 pt-3.5">
             <span className="size-1.5 rounded-full bg-accent" />
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Paste a line</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
+              What did you hear?
+            </p>
           </div>
+          {sentence ? (
+            <button
+              type="button"
+              onClick={() => setSentence("")}
+              aria-label="Clear the text"
+              className="absolute right-2.5 top-2.5 grid size-7 place-items-center rounded-[7px] border border-line bg-raised text-muted transition-colors hover:border-destructive/50 hover:text-destructive"
+            >
+              <X className="size-3.5" />
+            </button>
+          ) : null}
           <textarea
             value={sentence}
             onChange={(e) => setSentence(e.target.value)}
             rows={3}
-            placeholder="Paste the sentence you heard in the scene…"
+            placeholder="Type or paste a word, phrase or full line from the scene…"
             className="w-full resize-none bg-transparent px-3.5 pt-2.5 pb-3.5 text-[15px] leading-relaxed text-fg outline-none placeholder:text-muted"
           />
         </div>
@@ -128,11 +152,11 @@ function Discover() {
         >
           {mutation.isPending ? (
             <>
-              <Loader2 className="size-4 animate-spin" /> Reading the scene…
+              <Loader2 className="size-4 animate-spin" /> Working out the meaning…
             </>
           ) : (
             <>
-              <Sparkles className="size-4" /> Extract words
+              <Sparkles className="size-4" /> Understand the meaning
             </>
           )}
         </button>
@@ -142,7 +166,7 @@ function Discover() {
         <>
           <div className="pt-7 pb-2">
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
-              Extracted · {results.length} {results.length === 1 ? "word" : "words"}
+              Worth learning · {results.length} {results.length === 1 ? "word" : "words"}
             </p>
           </div>
           <div className="space-y-3">
@@ -172,8 +196,8 @@ function Discover() {
       ) : (
         <p className="pt-10 text-center text-[13px] leading-relaxed text-muted">
           {movies.length === 0
-            ? "Paste a line of dialogue — you can pick a movie for the card later."
-            : "Paste a line of dialogue and CineVocab pulls out the words worth learning."}
+            ? "Paste anything you didn't catch — you can file it under a movie later."
+            : "Paste anything you didn't catch and we'll explain it in simple English."}
         </p>
       )}
 
