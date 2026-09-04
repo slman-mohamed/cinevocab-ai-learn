@@ -196,8 +196,8 @@ function Discover() {
       ) : (
         <p className="pt-10 text-center text-[13px] leading-relaxed text-muted">
           {movies.length === 0
-            ? "Paste a line of dialogue — you can pick a movie for the card later."
-            : "Paste a line of dialogue and CineVocab pulls out the words worth learning."}
+            ? "Paste anything you didn't catch — you can file it under a movie later."
+            : "Paste anything you didn't catch and we'll explain it in simple English."}
         </p>
       )}
 
