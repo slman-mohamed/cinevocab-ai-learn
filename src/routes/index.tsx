@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation } from "@tanstack/react-query";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { MoviePicker } from "@/components/MoviePicker";
 import { MovieChooserDialog } from "@/components/MoveWordDialog";
