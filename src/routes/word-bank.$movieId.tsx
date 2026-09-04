@@ -85,8 +85,10 @@ function MovieWords() {
                     meta={dueLabel(w)}
                     onMove={() => setMoving(w.id)}
                     onDelete={() => deleteWord(w.id)}
+                    onQaChange={(qa) => updateWord(w.id, { qa })}
                   />
                 ))
+
               )}
             </div>
           </>
