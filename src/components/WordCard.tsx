@@ -13,6 +13,10 @@ interface Props {
   saved?: boolean;
   meta?: string;
   sourceSentence?: string;
+  /** DOM id used to scroll a specific card into view */
+  cardId?: string;
+  /** briefly highlights the card, e.g. after arriving from search */
+  flash?: boolean;
   onSave?: () => void;
   onMove?: () => void;
   onDelete?: () => void;
@@ -20,12 +24,16 @@ interface Props {
   onQaChange?: (qa: QAEntry[]) => void;
 }
 
+
 export function WordCard({
   word,
   index = 0,
   saved,
   meta,
   sourceSentence,
+  cardId,
+  flash,
+
   onSave,
   onMove,
   onDelete,
@@ -62,9 +70,14 @@ export function WordCard({
 
   return (
     <article
-      className="slip rounded-xl border border-line bg-surface p-4"
-      style={{ animationDelay: `${index * 90}ms` }}
+      id={cardId}
+      className={cn(
+        "rounded-xl border border-line bg-surface p-4",
+        flash ? "flash-card" : "slip",
+      )}
+      style={flash ? undefined : { animationDelay: `${index * 90}ms` }}
     >
+
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-[22px] font-semibold leading-tight text-fg">{word.word}</p>

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowUp, ArrowDown, ArrowUpDown, SlidersHorizontal } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ExportDialog } from "@/components/ExportDialog";
 import { MovieThumb } from "@/components/MovieThumb";
@@ -9,14 +9,25 @@ import { WordCard } from "@/components/WordCard";
 import { deleteWord, moveWord, updateWord, useAppState } from "@/lib/store";
 import { dueLabel } from "@/lib/srs";
 import { notify } from "@/lib/notify";
+import { posLabel } from "@/lib/wordsearch";
+import { cn } from "@/lib/utils";
+import type { FrequencyLevel, SavedWord } from "@/lib/types";
+
+const FREQ_ORDER: FrequencyLevel[] = ["Very Common", "Common", "Uncommon", "Rare"];
+
+type SortKey = "oldest" | "newest" | "common" | "type";
 
 export const Route = createFileRoute("/word-bank/$movieId")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    w: typeof search["w"] === "string" ? (search["w"] as string) : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Movie words — CineVocab" },
       {
         name: "description",
-        content: "Every word you saved from this movie, in the order you learned it — move cards between movies or delete them.",
+        content:
+          "Every word you saved from this movie, in the order you learned it — filter by word type or how common it is, move cards between movies or delete them.",
       },
       { property: "og:title", content: "Movie words — CineVocab" },
       {
@@ -30,15 +41,110 @@ export const Route = createFileRoute("/word-bank/$movieId")({
   component: MovieWords,
 });
 
+function chip(active: boolean) {
+  return cn(
+    "shrink-0 rounded-full border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors",
+    active
+      ? "border-accent/50 bg-accent/15 text-accent"
+      : "border-line bg-raised text-muted hover:border-accent/40 hover:text-accent",
+  );
+}
+
 function MovieWords() {
   const { movieId } = Route.useParams();
+  const { w: focusId } = Route.useSearch();
   const { movies, words } = useAppState();
   const movie = movies.find((m) => m.id === movieId) ?? null;
   const [moving, setMoving] = useState<string | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [pos, setPos] = useState<string | null>(null);
+  const [freq, setFreq] = useState<FrequencyLevel | null>(null);
+  const [sort, setSort] = useState<SortKey>("oldest");
+  const [typeOrder, setTypeOrder] = useState<string[]>([]);
+  const [flashId, setFlashId] = useState<string | null>(null);
 
-  const items = words
-    .filter((w) => w.movieId === movieId)
-    .sort((a, b) => a.createdAt - b.createdAt);
+  const all = useMemo(
+    () => words.filter((x) => x.movieId === movieId).sort((a, b) => a.createdAt - b.createdAt),
+    [words, movieId],
+  );
+
+  const posCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const x of all) {
+      const key = posLabel(x.partOfSpeech);
+      map.set(key, (map.get(key) ?? 0) + 1);
+    }
+    return [...map.entries()].sort((a, b) => b[1] - a[1]);
+  }, [all]);
+
+  const freqCounts = useMemo(
+    () =>
+      FREQ_ORDER.map(
+        (level) => [level, all.filter((x) => x.frequency === level).length] as const,
+      ).filter(([, n]) => n > 0),
+    [all],
+  );
+
+  // keep the manual type order in sync with the types present in this movie
+  useEffect(() => {
+    const present = posCounts.map(([p]) => p);
+    setTypeOrder((prev) => {
+      const kept = prev.filter((p) => present.includes(p));
+      const added = present.filter((p) => !kept.includes(p));
+      return [...kept, ...added];
+    });
+  }, [posCounts]);
+
+  const items = useMemo(() => {
+    let list = all;
+    if (pos) list = list.filter((x) => posLabel(x.partOfSpeech) === pos);
+    if (freq) list = list.filter((x) => x.frequency === freq);
+    const rank = (x: SavedWord) => FREQ_ORDER.indexOf(x.frequency);
+    const typeRank = (x: SavedWord) => {
+      const i = typeOrder.indexOf(posLabel(x.partOfSpeech));
+      return i === -1 ? 999 : i;
+    };
+    const sorted = [...list];
+    if (sort === "newest") sorted.sort((a, b) => b.createdAt - a.createdAt);
+    else if (sort === "oldest") sorted.sort((a, b) => a.createdAt - b.createdAt);
+    else if (sort === "common")
+      sorted.sort((a, b) => rank(a) - rank(b) || a.createdAt - b.createdAt);
+    else sorted.sort((a, b) => typeRank(a) - typeRank(b) || a.createdAt - b.createdAt);
+    return sorted;
+  }, [all, pos, freq, sort, typeOrder]);
+
+  // arriving from search: clear filters, scroll to the card and flash it
+  useEffect(() => {
+    if (!focusId) return;
+    setPos(null);
+    setFreq(null);
+    const t = setTimeout(() => {
+      document
+        .getElementById(`word-${focusId}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      setFlashId(focusId);
+    }, 250);
+    return () => clearTimeout(t);
+  }, [focusId]);
+
+  useEffect(() => {
+    if (!flashId) return;
+    const t = setTimeout(() => setFlashId(null), 3400);
+    return () => clearTimeout(t);
+  }, [flashId]);
+
+  const moveType = (index: number, dir: -1 | 1) => {
+    setSort("type");
+    setTypeOrder((prev) => {
+      const next = [...prev];
+      const target = index + dir;
+      if (target < 0 || target >= next.length) return prev;
+      const a = next[index]!;
+      next[index] = next[target]!;
+      next[target] = a;
+      return next;
+    });
+  };
 
   return (
     <AppShell
@@ -54,7 +160,9 @@ function MovieWords() {
         </Link>
 
         {!movie ? (
-          <p className="pt-10 text-center text-[13px] text-muted">That movie is no longer in your shelf.</p>
+          <p className="pt-10 text-center text-[13px] text-muted">
+            That movie is no longer in your shelf.
+          </p>
         ) : (
           <>
             <div className="mt-4 flex items-center gap-3.5">
@@ -66,15 +174,153 @@ function MovieWords() {
               <div className="min-w-0">
                 <h2 className="text-[19px] font-semibold leading-tight text-fg">{movie.title}</h2>
                 <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
-                  {items.length} {items.length === 1 ? "word" : "words"}
+                  {items.length === all.length
+                    ? `${all.length} ${all.length === 1 ? "word" : "words"}`
+                    : `${items.length} of ${all.length} words`}
                 </p>
               </div>
             </div>
 
-            <div className="mt-6 space-y-2.5">
+            {all.length > 0 ? (
+              <div className="mt-5 rounded-[11px] border border-line bg-surface">
+                <button
+                  type="button"
+                  onClick={() => setPanelOpen((o) => !o)}
+                  className="flex w-full items-center justify-between px-3.5 py-2.5 text-[12px] font-semibold text-fg"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <SlidersHorizontal className="size-3.5 text-accent" /> Filter &amp; sort
+                  </span>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
+                    {panelOpen ? "hide" : "show"}
+                  </span>
+                </button>
+
+                {panelOpen ? (
+                  <div className="space-y-3.5 border-t border-line px-3.5 py-3">
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
+                        Word type
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setPos(null)}
+                          className={chip(pos === null)}
+                        >
+                          all {all.length}
+                        </button>
+                        {posCounts.map(([p, n]) => (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => setPos(pos === p ? null : p)}
+                            className={chip(pos === p)}
+                          >
+                            {p} {n}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
+                        How common
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setFreq(null)}
+                          className={chip(freq === null)}
+                        >
+                          all {all.length}
+                        </button>
+                        {freqCounts.map(([level, n]) => (
+                          <button
+                            key={level}
+                            type="button"
+                            onClick={() => setFreq(freq === level ? null : level)}
+                            className={chip(freq === level)}
+                          >
+                            {level} {n}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
+                        Sort by
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {(
+                          [
+                            ["oldest", "oldest first"],
+                            ["newest", "newest first"],
+                            ["common", "how common"],
+                            ["type", "word type"],
+                          ] as [SortKey, string][]
+                        ).map(([key, label]) => (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => setSort(key)}
+                            className={chip(sort === key)}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {sort === "type" ? (
+                        <div className="mt-2.5 space-y-1.5">
+                          {typeOrder.map((p, i) => (
+                            <div
+                              key={p}
+                              className="flex items-center justify-between rounded-[9px] border border-line bg-raised px-2.5 py-1.5"
+                            >
+                              <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-fg/85">
+                                <ArrowUpDown className="size-3.5 text-muted" /> {p}
+                                <span className="text-muted">
+                                  {posCounts.find(([x]) => x === p)?.[1] ?? 0}
+                                </span>
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => moveType(i, -1)}
+                                  disabled={i === 0}
+                                  aria-label={`Move ${p} up`}
+                                  className="grid size-7 place-items-center rounded-md border border-line text-muted hover:text-accent disabled:opacity-30"
+                                >
+                                  <ArrowUp className="size-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => moveType(i, 1)}
+                                  disabled={i === typeOrder.length - 1}
+                                  aria-label={`Move ${p} down`}
+                                  className="grid size-7 place-items-center rounded-md border border-line text-muted hover:text-accent disabled:opacity-30"
+                                >
+                                  <ArrowDown className="size-3.5" />
+                                </button>
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            <div className="mt-5 space-y-2.5">
               {items.length === 0 ? (
                 <p className="pt-6 text-center text-[13px] text-muted">
-                  No words from this movie yet.
+                  {all.length === 0
+                    ? "No words from this movie yet."
+                    : "No cards match those filters."}
                 </p>
               ) : (
                 items.map((w, i) => (
@@ -82,13 +328,14 @@ function MovieWords() {
                     key={w.id}
                     word={w}
                     index={i}
+                    cardId={`word-${w.id}`}
+                    flash={flashId === w.id}
                     meta={dueLabel(w)}
                     onMove={() => setMoving(w.id)}
                     onDelete={() => deleteWord(w.id)}
                     onQaChange={(qa) => updateWord(w.id, { qa })}
                   />
                 ))
-
               )}
             </div>
           </>
