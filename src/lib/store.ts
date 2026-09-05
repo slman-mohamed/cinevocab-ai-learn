@@ -149,3 +149,15 @@ export function isSaved(word: string, movieId: string | null) {
     (w) => w.movieId === movieId && w.word.toLowerCase() === word.toLowerCase(),
   );
 }
+
+export function setDiscoveryResults(results: ExtractedWord[], explanation: string | null) {
+  set({ ...state, lastResults: results, lastExplanation: explanation });
+}
+
+export function setDiscoverySentence(sentence: string) {
+  set({ ...state, lastSubmittedSentence: sentence });
+}
+
+export function clearDiscovery() {
+  set({ ...state, lastSubmittedSentence: "", lastResults: [], lastExplanation: null });
+}
