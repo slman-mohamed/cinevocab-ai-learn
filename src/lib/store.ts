@@ -3,7 +3,14 @@ import type { AppState, ExtractedWord, Movie, SavedWord } from "./types";
 
 const KEY = "cinevocab.state.v1";
 
-const empty: AppState = { movies: [], words: [], selectedMovieId: null };
+const empty: AppState = {
+  movies: [],
+  words: [],
+  selectedMovieId: null,
+  lastSubmittedSentence: "",
+  lastResults: [],
+  lastExplanation: null,
+};
 
 let state: AppState = empty;
 let hydrated = false;
@@ -32,6 +39,9 @@ export function hydrateStore() {
         movies: parsed.movies ?? [],
         words: parsed.words ?? [],
         selectedMovieId: parsed.selectedMovieId ?? null,
+        lastSubmittedSentence: parsed.lastSubmittedSentence ?? "",
+        lastResults: parsed.lastResults ?? [],
+        lastExplanation: parsed.lastExplanation ?? null,
       };
     }
   } catch {
@@ -67,6 +77,7 @@ export function mergeState(incoming: Partial<AppState>) {
     if (!dup) words.push(w);
   }
   set({
+    ...state,
     movies: movies.sort((a, b) => a.createdAt - b.createdAt),
     words: words.sort((a, b) => a.createdAt - b.createdAt),
     selectedMovieId: state.selectedMovieId ?? incoming.selectedMovieId ?? null,
@@ -148,4 +159,16 @@ export function isSaved(word: string, movieId: string | null) {
   return state.words.some(
     (w) => w.movieId === movieId && w.word.toLowerCase() === word.toLowerCase(),
   );
+}
+
+export function setDiscoveryResults(results: ExtractedWord[], explanation: string | null) {
+  set({ ...state, lastResults: results, lastExplanation: explanation });
+}
+
+export function setDiscoverySentence(sentence: string) {
+  set({ ...state, lastSubmittedSentence: sentence });
+}
+
+export function clearDiscovery() {
+  set({ ...state, lastSubmittedSentence: "", lastResults: [], lastExplanation: null });
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation } from "@tanstack/react-query";
@@ -10,7 +10,18 @@ import { WordCard } from "@/components/WordCard";
 import { SentenceCard } from "@/components/SentenceCard";
 import { extractWords } from "@/lib/vocab.functions";
 import { notify } from "@/lib/notify";
-import { deleteWord, saveWord, updateWord, useAppState } from "@/lib/store";
+import {
+  clearDiscovery,
+  deleteWord,
+  getState,
+  hydrateStore,
+  saveWord,
+  setDiscoveryResults,
+  setDiscoverySentence,
+  subscribeState,
+  updateWord,
+  useAppState,
+} from "@/lib/store";
 import type { ExtractedWord, QAEntry } from "@/lib/types";
 
 
@@ -47,6 +58,39 @@ function Discover() {
   const [pending, setPending] = useState<ExtractedWord | null>(null);
   const extract = useServerFn(extractWords);
 
+  // Restore the last Discover extraction after the store hydrates from localStorage.
+  useEffect(() => {
+    const tryRestore = () => {
+      hydrateStore();
+      const s = getState();
+      if (s.lastSubmittedSentence || (s.lastResults ?? []).length || s.lastExplanation) {
+        setSentence(s.lastSubmittedSentence || "");
+        setResults(s.lastResults ?? []);
+        setExplanation(s.lastExplanation ?? null);
+        setExplainedSentence(s.lastSubmittedSentence || "");
+        return true;
+      }
+      return false;
+    };
+
+    if (tryRestore()) return;
+
+    // Hydration may happen in a parent effect after this one; listen once.
+    let unsubscribe = () => {};
+    unsubscribe = subscribeState(() => {
+      if (tryRestore()) unsubscribe();
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Persist results/explanation back to the store whenever they change.
+  const hasResults = results.length > 0 || explanation !== null;
+  useEffect(() => {
+    if (hasResults) {
+      setDiscoveryResults(results, explanation);
+    }
+  }, [hasResults, results, explanation]);
+
   const onQaChange = (word: ExtractedWord, qa: QAEntry[]) => {
     setResults((rs) => rs.map((r) => (r.word === word.word ? { ...r, qa } : r)));
     const id = savedIds[word.word];
@@ -72,6 +116,7 @@ function Discover() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!sentence.trim()) return;
+    setDiscoverySentence(sentence.trim());
     mutation.mutate(sentence.trim());
   };
 
@@ -130,7 +175,15 @@ function Discover() {
           {sentence ? (
             <button
               type="button"
-              onClick={() => setSentence("")}
+              onClick={() => {
+                setSentence("");
+                setResults([]);
+                setExplanation(null);
+                setExplainedSentence("");
+                setSavedKeys([]);
+                setSavedIds({});
+                clearDiscovery();
+              }}
               aria-label="Clear the text"
               className="absolute right-2.5 top-2.5 grid size-7 place-items-center rounded-[7px] border border-line bg-raised text-muted transition-colors hover:border-destructive/50 hover:text-destructive"
             >

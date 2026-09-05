@@ -41,4 +41,8 @@ export interface AppState {
   movies: Movie[];
   words: SavedWord[];
   selectedMovieId: string | null;
+  /** Last Discover extraction so cards survive tab navigation. */
+  lastSubmittedSentence?: string;
+  lastResults?: ExtractedWord[];
+  lastExplanation?: string | null;
 }
