@@ -13,12 +13,17 @@ interface Props {
   saved?: boolean;
   meta?: string;
   sourceSentence?: string;
+  /** DOM id used to scroll a specific card into view */
+  cardId?: string;
+  /** briefly highlights the card, e.g. after arriving from search */
+  flash?: boolean;
   onSave?: () => void;
   onMove?: () => void;
   onDelete?: () => void;
   /** persists the question/answer thread so it survives saving and appears in the Word Bank */
   onQaChange?: (qa: QAEntry[]) => void;
 }
+
 
 export function WordCard({
   word,
