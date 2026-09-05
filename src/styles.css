@@ -126,6 +126,24 @@
   animation: settle 0.4s ease both;
 }
 
+@keyframes flash-card {
+  0%,
+  100% {
+    border-color: var(--color-line);
+    box-shadow: none;
+  }
+  20%,
+  60% {
+    border-color: color-mix(in oklab, var(--color-accent) 70%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-accent) 22%, transparent);
+  }
+}
+
+@utility flash-card {
+  animation: flash-card 1.6s ease-in-out 2;
+}
+
+
 @utility label-mono {
   font-family: var(--font-mono);
   font-size: 10px;
