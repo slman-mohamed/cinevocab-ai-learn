@@ -59,24 +59,28 @@ function Discover() {
   const extract = useServerFn(extractWords);
 
   // Restore the last Discover extraction after the store hydrates from localStorage.
-  const initialized = useRef(false);
   useEffect(() => {
-    if (!initialized.current) {
+    const tryRestore = () => {
       hydrateStore();
       const s = getState();
-      console.log("[Discover restore] hydrated state:", {
-        lastSubmittedSentence: s.lastSubmittedSentence,
-        lastResultsLength: s.lastResults?.length,
-        lastExplanation: s.lastExplanation,
-      });
       if (s.lastSubmittedSentence || (s.lastResults ?? []).length || s.lastExplanation) {
         setSentence(s.lastSubmittedSentence || "");
         setResults(s.lastResults ?? []);
         setExplanation(s.lastExplanation ?? null);
         setExplainedSentence(s.lastSubmittedSentence || "");
+        return true;
       }
-      initialized.current = true;
-    }
+      return false;
+    };
+
+    if (tryRestore()) return;
+
+    // Hydration may happen in a parent effect after this one; listen once.
+    let unsubscribe = () => {};
+    unsubscribe = subscribeState(() => {
+      if (tryRestore()) unsubscribe();
+    });
+    return () => unsubscribe();
   }, []);
 
   // Persist results/explanation back to the store whenever they change.
