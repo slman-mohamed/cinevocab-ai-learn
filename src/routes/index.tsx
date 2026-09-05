@@ -165,7 +165,15 @@ function Discover() {
           {sentence ? (
             <button
               type="button"
-              onClick={() => setSentence("")}
+              onClick={() => {
+                setSentence("");
+                setResults([]);
+                setExplanation(null);
+                setExplainedSentence("");
+                setSavedKeys([]);
+                setSavedIds({});
+                clearDiscovery();
+              }}
               aria-label="Clear the text"
               className="absolute right-2.5 top-2.5 grid size-7 place-items-center rounded-[7px] border border-line bg-raised text-muted transition-colors hover:border-destructive/50 hover:text-destructive"
             >
