@@ -129,13 +129,13 @@
 @keyframes flash-card {
   0%,
   100% {
-    border-color: var(--color-line);
+    border-color: var(--line);
     box-shadow: none;
   }
   20%,
   60% {
-    border-color: color-mix(in oklab, var(--color-accent) 70%, transparent);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-accent) 22%, transparent);
+    border-color: color-mix(in oklab, var(--accent) 70%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 22%, transparent);
   }
 }
 
