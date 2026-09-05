@@ -31,6 +31,9 @@ export function WordCard({
   saved,
   meta,
   sourceSentence,
+  cardId,
+  flash,
+
   onSave,
   onMove,
   onDelete,
