@@ -39,6 +39,9 @@ export function hydrateStore() {
         movies: parsed.movies ?? [],
         words: parsed.words ?? [],
         selectedMovieId: parsed.selectedMovieId ?? null,
+        lastSubmittedSentence: parsed.lastSubmittedSentence ?? "",
+        lastResults: parsed.lastResults ?? [],
+        lastExplanation: parsed.lastExplanation ?? null,
       };
     }
   } catch {
