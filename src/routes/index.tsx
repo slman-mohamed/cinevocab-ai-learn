@@ -60,9 +60,15 @@ function Discover() {
 
   // Restore the last Discover extraction after the store hydrates from localStorage.
   useEffect(() => {
+    console.log("[Discover restore] effect running");
     const tryRestore = () => {
       hydrateStore();
       const s = getState();
+      console.log("[Discover restore] tryRestore:", {
+        lastSubmittedSentence: s.lastSubmittedSentence,
+        lastResultsLength: s.lastResults?.length,
+        lastExplanation: s.lastExplanation,
+      });
       if (s.lastSubmittedSentence || (s.lastResults ?? []).length || s.lastExplanation) {
         setSentence(s.lastSubmittedSentence || "");
         setResults(s.lastResults ?? []);
@@ -78,6 +84,7 @@ function Discover() {
     // Hydration may happen in a parent effect after this one; listen once.
     let unsubscribe = () => {};
     unsubscribe = subscribeState(() => {
+      console.log("[Discover restore] store emitted");
       if (tryRestore()) unsubscribe();
     });
     return () => unsubscribe();
