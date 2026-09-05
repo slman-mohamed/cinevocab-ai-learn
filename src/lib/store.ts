@@ -3,7 +3,14 @@ import type { AppState, ExtractedWord, Movie, SavedWord } from "./types";
 
 const KEY = "cinevocab.state.v1";
 
-const empty: AppState = { movies: [], words: [], selectedMovieId: null };
+const empty: AppState = {
+  movies: [],
+  words: [],
+  selectedMovieId: null,
+  lastSubmittedSentence: "",
+  lastResults: [],
+  lastExplanation: null,
+};
 
 let state: AppState = empty;
 let hydrated = false;
