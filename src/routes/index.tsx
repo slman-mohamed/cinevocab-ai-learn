@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation } from "@tanstack/react-query";
@@ -10,7 +10,17 @@ import { WordCard } from "@/components/WordCard";
 import { SentenceCard } from "@/components/SentenceCard";
 import { extractWords } from "@/lib/vocab.functions";
 import { notify } from "@/lib/notify";
-import { deleteWord, saveWord, updateWord, useAppState } from "@/lib/store";
+import {
+  clearDiscovery,
+  deleteWord,
+  getState,
+  hydrateStore,
+  saveWord,
+  setDiscoveryResults,
+  setDiscoverySentence,
+  updateWord,
+  useAppState,
+} from "@/lib/store";
 import type { ExtractedWord, QAEntry } from "@/lib/types";
 
 
