@@ -18,6 +18,7 @@ import {
   saveWord,
   setDiscoveryResults,
   setDiscoverySentence,
+  subscribeState,
   updateWord,
   useAppState,
 } from "@/lib/store";
