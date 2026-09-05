@@ -19,7 +19,7 @@ type SortKey = "oldest" | "newest" | "common" | "type";
 
 export const Route = createFileRoute("/word-bank/$movieId")({
   validateSearch: (search: Record<string, unknown>) => ({
-    w: typeof search.w === "string" ? search.w : undefined,
+    w: typeof search["w"] === "string" ? (search["w"] as string) : undefined,
   }),
   head: () => ({
     meta: [

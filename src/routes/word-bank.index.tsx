@@ -126,6 +126,7 @@ function WordBank() {
                   key={movie.id}
                   to="/word-bank/$movieId"
                   params={{ movieId: movie.id }}
+                  search={{ w: undefined }}
                   className="group block"
                 >
                   <MovieThumb
