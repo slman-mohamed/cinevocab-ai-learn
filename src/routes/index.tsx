@@ -57,6 +57,30 @@ function Discover() {
   const [pending, setPending] = useState<ExtractedWord | null>(null);
   const extract = useServerFn(extractWords);
 
+  // Restore the last Discover extraction after the store hydrates from localStorage.
+  const initialized = useRef(false);
+  useEffect(() => {
+    if (!initialized.current) {
+      hydrateStore();
+      const s = getState();
+      if (s.lastSubmittedSentence || (s.lastResults ?? []).length || s.lastExplanation) {
+        setSentence(s.lastSubmittedSentence || "");
+        setResults(s.lastResults ?? []);
+        setExplanation(s.lastExplanation ?? null);
+        setExplainedSentence(s.lastSubmittedSentence || "");
+      }
+      initialized.current = true;
+    }
+  }, []);
+
+  // Persist results/explanation back to the store whenever they change.
+  const hasResults = results.length > 0 || explanation !== null;
+  useEffect(() => {
+    if (hasResults) {
+      setDiscoveryResults(results, explanation);
+    }
+  }, [hasResults, results, explanation]);
+
   const onQaChange = (word: ExtractedWord, qa: QAEntry[]) => {
     setResults((rs) => rs.map((r) => (r.word === word.word ? { ...r, qa } : r)));
     const id = savedIds[word.word];
