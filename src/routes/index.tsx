@@ -63,6 +63,11 @@ function Discover() {
     if (!initialized.current) {
       hydrateStore();
       const s = getState();
+      console.log("[Discover restore] hydrated state:", {
+        lastSubmittedSentence: s.lastSubmittedSentence,
+        lastResultsLength: s.lastResults?.length,
+        lastExplanation: s.lastExplanation,
+      });
       if (s.lastSubmittedSentence || (s.lastResults ?? []).length || s.lastExplanation) {
         setSentence(s.lastSubmittedSentence || "");
         setResults(s.lastResults ?? []);
