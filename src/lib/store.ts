@@ -77,6 +77,7 @@ export function mergeState(incoming: Partial<AppState>) {
     if (!dup) words.push(w);
   }
   set({
+    ...state,
     movies: movies.sort((a, b) => a.createdAt - b.createdAt),
     words: words.sort((a, b) => a.createdAt - b.createdAt),
     selectedMovieId: state.selectedMovieId ?? incoming.selectedMovieId ?? null,
