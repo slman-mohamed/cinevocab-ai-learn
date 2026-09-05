@@ -106,6 +106,7 @@ function Discover() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!sentence.trim()) return;
+    setDiscoverySentence(sentence.trim());
     mutation.mutate(sentence.trim());
   };
 
