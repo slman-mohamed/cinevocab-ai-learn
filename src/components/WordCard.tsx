@@ -1,11 +1,18 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Bookmark, BookmarkCheck, FolderInput, Loader2, SendHorizonal, Trash2 } from "lucide-react";
+import { Bookmark, BookmarkCheck, FolderInput, Loader2, MoreVertical, SendHorizonal, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { PillBadges } from "./PillBadges";
 import { askAboutWord } from "@/lib/vocab.functions";
 import { notify } from "@/lib/notify";
 import type { ExtractedWord, QAEntry, SavedWord } from "@/lib/types";
 import { cn } from "@/lib/utils";
+
 
 interface Props {
   word: ExtractedWord | SavedWord;
