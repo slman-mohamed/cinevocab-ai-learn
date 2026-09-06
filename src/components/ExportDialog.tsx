@@ -9,12 +9,15 @@ import { cn } from "@/lib/utils";
 interface Props {
   movies: Movie[];
   words: SavedWord[];
+  /** when true the scope is locked to the movies passed in (no scope picker) */
+  fixedScope?: boolean;
 }
 
-export function ExportDialog({ movies, words }: Props) {
+export function ExportDialog({ movies, words, fixedScope = false }: Props) {
   const [open, setOpen] = useState(false);
-  const [scope, setScope] = useState<string>("all");
+  const [scope, setScope] = useState<string>(fixedScope ? (movies[0]?.id ?? "all") : "all");
   const [format, setFormat] = useState<"pdf" | "csv">("pdf");
+
 
   const run = () => {
     const selectedMovies = scope === "all" ? movies : movies.filter((m) => m.id === scope);
