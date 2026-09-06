@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, ArrowUp, ArrowDown, ArrowUpDown, SlidersHorizontal } from "lucide-react";
+import { ArrowLeft, ArrowUp, ArrowDown } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ExportDialog } from "@/components/ExportDialog";
 import { MovieThumb } from "@/components/MovieThumb";
 import { MovieChooserDialog } from "@/components/MoveWordDialog";
 import { WordCard } from "@/components/WordCard";
 import { deleteWord, moveWord, updateWord, useAppState } from "@/lib/store";
-import { dueLabel } from "@/lib/srs";
 import { notify } from "@/lib/notify";
 import { posLabel } from "@/lib/wordsearch";
 import { cn } from "@/lib/utils";
@@ -41,12 +40,10 @@ export const Route = createFileRoute("/word-bank/$movieId")({
   component: MovieWords,
 });
 
-function chip(active: boolean) {
+function selectClass(active: boolean) {
   return cn(
-    "shrink-0 rounded-full border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors",
-    active
-      ? "border-accent/50 bg-accent/15 text-accent"
-      : "border-line bg-raised text-muted hover:border-accent/40 hover:text-accent",
+    "w-full appearance-none rounded-[9px] border bg-raised px-3 py-2.5 text-[12px] font-semibold outline-none transition-colors",
+    active ? "border-accent/50 bg-accent/10 text-accent" : "border-line text-fg/85",
   );
 }
 
@@ -56,7 +53,6 @@ function MovieWords() {
   const { movies, words } = useAppState();
   const movie = movies.find((m) => m.id === movieId) ?? null;
   const [moving, setMoving] = useState<string | null>(null);
-  const [panelOpen, setPanelOpen] = useState(false);
   const [pos, setPos] = useState<string | null>(null);
   const [freq, setFreq] = useState<FrequencyLevel | null>(null);
   const [sort, setSort] = useState<SortKey>("oldest");
@@ -149,7 +145,7 @@ function MovieWords() {
   return (
     <AppShell
       tab="Word Bank"
-      right={movie ? <ExportDialog movies={[movie]} words={items} /> : undefined}
+      right={movie ? <ExportDialog movies={[movie]} words={all} fixedScope /> : undefined}
     >
       <div className="pt-5">
         <Link
@@ -305,7 +301,6 @@ function MovieWords() {
                     index={i}
                     cardId={`word-${w.id}`}
                     flash={flashId === w.id}
-                    meta={dueLabel(w)}
                     onMove={() => setMoving(w.id)}
                     onDelete={() => deleteWord(w.id)}
                     onQaChange={(qa) => updateWord(w.id, { qa })}
