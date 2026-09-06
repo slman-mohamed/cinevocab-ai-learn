@@ -40,11 +40,29 @@ export const Route = createFileRoute("/word-bank/$movieId")({
   component: MovieWords,
 });
 
-function selectClass(active: boolean) {
+const SORTS: { key: SortKey; label: string; Icon: typeof ArrowUp }[] = [
+  { key: "oldest", label: "Oldest", Icon: History },
+  { key: "newest", label: "Newest", Icon: Sparkles },
+  { key: "common", label: "Common", Icon: BarChart3 },
+  { key: "type", label: "Grouped", Icon: Layers },
+];
+
+function chipClass(active: boolean) {
   return cn(
-    "w-full appearance-none rounded-[9px] border bg-raised px-3 py-2.5 text-[12px] font-semibold outline-none transition-colors",
-    active ? "border-accent/50 bg-accent/10 text-accent" : "border-line text-fg/85",
+    "inline-flex shrink-0 items-center whitespace-nowrap rounded-full border px-3 py-1.5 text-[11.5px] font-semibold transition-colors",
+    active
+      ? "border-accent/50 bg-accent/12 text-accent"
+      : "border-line bg-raised text-fg/80 hover:border-accent/30 hover:text-accent",
   );
+}
+
+function dotClass(label: string) {
+  const p = label.toLowerCase();
+  if (p.startsWith("noun") || p.includes("pronoun")) return "bg-pos-noun";
+  if (p.startsWith("verb") || p.includes("phras")) return "bg-pos-verb";
+  if (p.startsWith("adj")) return "bg-pos-adj";
+  if (p.startsWith("adv")) return "bg-pos-adv";
+  return "bg-pos-other";
 }
 
 function MovieWords() {
