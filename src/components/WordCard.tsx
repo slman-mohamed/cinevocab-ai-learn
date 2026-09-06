@@ -107,26 +107,35 @@ export function WordCard({
             {saved ? <BookmarkCheck className="size-4" /> : <Bookmark className="size-4" />}
           </button>
         ) : null}
-        {onMove ? (
-          <button
-            type="button"
-            onClick={onMove}
-            aria-label="Move word to another movie"
-            className="grid size-9 shrink-0 place-items-center rounded-[9px] border border-line bg-raised text-muted transition-colors hover:border-accent/50 hover:text-accent"
-          >
-            <FolderInput className="size-4" />
-          </button>
+        {onMove || onDelete ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label="Card options"
+                className="grid size-9 shrink-0 place-items-center rounded-[9px] border border-line bg-raised text-muted transition-colors hover:border-accent/50 hover:text-accent"
+              >
+                <MoreVertical className="size-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-48 border-line bg-surface text-fg">
+              {onMove ? (
+                <DropdownMenuItem onSelect={() => onMove()} className="gap-2 text-[13px]">
+                  <FolderInput className="size-4" /> Move to another movie
+                </DropdownMenuItem>
+              ) : null}
+              {onDelete ? (
+                <DropdownMenuItem
+                  onSelect={() => onDelete()}
+                  className="gap-2 text-[13px] text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="size-4" /> Delete this card
+                </DropdownMenuItem>
+              ) : null}
+            </DropdownMenuContent>
+          </DropdownMenu>
         ) : null}
-        {onDelete ? (
-          <button
-            type="button"
-            onClick={onDelete}
-            aria-label="Delete word"
-            className="grid size-9 shrink-0 place-items-center rounded-[9px] border border-line bg-raised text-muted transition-colors hover:border-destructive/50 hover:text-destructive"
-          >
-            <Trash2 className="size-4" />
-          </button>
-        ) : null}
+
       </div>
 
       <PillBadges ipa={word.ipa} partOfSpeech={word.partOfSpeech} frequency={word.frequency} />
