@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, ArrowUp, ArrowDown } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUp,
+  ArrowDown,
+  BarChart3,
+  History,
+  Layers,
+  Sparkles,
+} from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ExportDialog } from "@/components/ExportDialog";
 import { MovieThumb } from "@/components/MovieThumb";
@@ -40,11 +48,29 @@ export const Route = createFileRoute("/word-bank/$movieId")({
   component: MovieWords,
 });
 
-function selectClass(active: boolean) {
+const SORTS: { key: SortKey; label: string; Icon: typeof ArrowUp }[] = [
+  { key: "oldest", label: "Oldest", Icon: History },
+  { key: "newest", label: "Newest", Icon: Sparkles },
+  { key: "common", label: "Common", Icon: BarChart3 },
+  { key: "type", label: "Grouped", Icon: Layers },
+];
+
+function chipClass(active: boolean) {
   return cn(
-    "w-full appearance-none rounded-[9px] border bg-raised px-3 py-2.5 text-[12px] font-semibold outline-none transition-colors",
-    active ? "border-accent/50 bg-accent/10 text-accent" : "border-line text-fg/85",
+    "inline-flex shrink-0 items-center whitespace-nowrap rounded-full border px-3 py-1.5 text-[11.5px] font-semibold transition-colors",
+    active
+      ? "border-accent/50 bg-accent/12 text-accent"
+      : "border-line bg-raised text-fg/80 hover:border-accent/30 hover:text-accent",
   );
+}
+
+function dotClass(label: string) {
+  const p = label.toLowerCase();
+  if (p.startsWith("noun") || p.includes("pronoun")) return "bg-pos-noun";
+  if (p.startsWith("verb") || p.includes("phras")) return "bg-pos-verb";
+  if (p.startsWith("adj")) return "bg-pos-adj";
+  if (p.startsWith("adv")) return "bg-pos-adv";
+  return "bg-pos-other";
 }
 
 function MovieWords() {
@@ -178,86 +204,138 @@ function MovieWords() {
             </div>
 
             {all.length > 0 ? (
-              <div className="mt-5 space-y-2">
-                <div className="flex gap-2">
-                  <label className="min-w-0 flex-1">
-                    <span className="sr-only">Filter by word type</span>
-                    <select
-                      value={pos ?? ""}
-                      onChange={(e) => setPos(e.target.value || null)}
-                      className={selectClass(pos !== null)}
-                    >
-                      <option value="">All types · {all.length}</option>
-                      {posCounts.map(([p, n]) => (
-                        <option key={p} value={p}>
-                          {p} · {n}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="min-w-0 flex-1">
-                    <span className="sr-only">Filter by how common</span>
-                    <select
-                      value={freq ?? ""}
-                      onChange={(e) => setFreq((e.target.value || null) as FrequencyLevel | null)}
-                      className={selectClass(freq !== null)}
-                    >
-                      <option value="">All levels · {all.length}</option>
-                      {freqCounts.map(([level, n]) => (
-                        <option key={level} value={level}>
-                          {level} · {n}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+              <div className="mt-5 overflow-hidden rounded-[14px] border border-line bg-surface">
+                {/* sprocket strip */}
+                <div className="flex items-center justify-between gap-1.5 border-b border-line/70 bg-raised/40 px-3 py-1.5">
+                  <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-muted">
+                    Reel controls
+                  </span>
+                  <span className="flex gap-1">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <span key={i} className="size-1 rounded-full bg-line" />
+                    ))}
+                  </span>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <label className="min-w-0 flex-1">
-                    <span className="sr-only">Sort the cards</span>
-                    <select
-                      value={sort}
-                      onChange={(e) => setSort(e.target.value as SortKey)}
-                      className={selectClass(sort !== "oldest")}
-                    >
-                      <option value="oldest">Oldest first</option>
-                      <option value="newest">Newest first</option>
-                      <option value="common">Most common first</option>
-                      <option value="type">Grouped by word type</option>
-                    </select>
-                  </label>
-                  {pos || freq ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPos(null);
-                        setFreq(null);
-                      }}
-                      className="shrink-0 rounded-[9px] border border-line bg-raised px-3 py-2.5 text-[12px] font-semibold text-muted hover:text-accent"
-                    >
-                      Clear
-                    </button>
-                  ) : null}
-                </div>
-
-                {sort === "type" && typeOrder.length > 1 ? (
-                  <div className="rounded-[11px] border border-line bg-surface p-2">
-                    <p className="px-1 pb-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
-                      Group order
+                <div className="space-y-3 p-3">
+                  {/* word type rail */}
+                  <div>
+                    <p className="pb-1.5 font-mono text-[9px] uppercase tracking-[0.2em] text-muted">
+                      Word type
                     </p>
-                    <div className="space-y-1">
-                      {typeOrder.map((p, i) => (
-                        <div
+                    <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5">
+                      <button type="button" onClick={() => setPos(null)} className={chipClass(pos === null)}>
+                        Everything
+                        <span className="ml-1.5 font-mono text-[10px] opacity-60">{all.length}</span>
+                      </button>
+                      {posCounts.map(([p, n]) => (
+                        <button
                           key={p}
-                          className="flex items-center justify-between rounded-[8px] bg-raised px-2.5 py-1.5"
+                          type="button"
+                          onClick={() => setPos(pos === p ? null : p)}
+                          className={chipClass(pos === p)}
                         >
-                          <span className="text-[12px] font-semibold text-fg/85">
-                            {p}{" "}
-                            <span className="font-mono text-[10px] text-muted">
-                              {posCounts.find(([x]) => x === p)?.[1] ?? 0}
+                          <span className={cn("mr-1.5 inline-block size-1.5 rounded-full", dotClass(p))} />
+                          {p}
+                          <span className="ml-1.5 font-mono text-[10px] opacity-60">{n}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* level meters */}
+                  {freqCounts.length > 0 ? (
+                    <div>
+                      <p className="pb-1.5 font-mono text-[9px] uppercase tracking-[0.2em] text-muted">
+                        How common
+                      </p>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {freqCounts.map(([level, n]) => {
+                          const bars = 4 - FREQ_ORDER.indexOf(level);
+                          const on = freq === level;
+                          return (
+                            <button
+                              key={level}
+                              type="button"
+                              onClick={() => setFreq(on ? null : level)}
+                              className={cn(
+                                "flex items-center justify-between rounded-[9px] border px-2.5 py-2 text-left transition-colors",
+                                on
+                                  ? "border-accent/50 bg-accent/10 text-accent"
+                                  : "border-line bg-raised text-fg/80 hover:border-accent/30",
+                              )}
+                            >
+                              <span className="min-w-0">
+                                <span className="block truncate text-[11.5px] font-semibold">{level}</span>
+                                <span className="mt-1 flex gap-[3px]">
+                                  {Array.from({ length: 4 }).map((_, i) => (
+                                    <span
+                                      key={i}
+                                      className={cn(
+                                        "h-[3px] w-3.5 rounded-full",
+                                        i < bars
+                                          ? on
+                                            ? "bg-accent"
+                                            : "bg-fg/50"
+                                          : "bg-line",
+                                      )}
+                                    />
+                                  ))}
+                                </span>
+                              </span>
+                              <span className="ml-2 font-mono text-[11px] opacity-70">{n}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {/* sort segmented rail */}
+                  <div>
+                    <p className="pb-1.5 font-mono text-[9px] uppercase tracking-[0.2em] text-muted">
+                      Order
+                    </p>
+                    <div className="flex rounded-[10px] border border-line bg-raised p-1">
+                      {SORTS.map(({ key, label, Icon }) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => setSort(key)}
+                          title={label}
+                          className={cn(
+                            "flex flex-1 items-center justify-center gap-1.5 rounded-[7px] px-2 py-1.5 text-[11px] font-semibold transition-colors",
+                            sort === key
+                              ? "bg-accent text-accent-foreground"
+                              : "text-muted hover:text-accent",
+                          )}
+                        >
+                          <Icon className="size-3.5 shrink-0" />
+                          <span className="truncate">{label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {sort === "type" && typeOrder.length > 1 ? (
+                    <div className="rounded-[10px] border border-dashed border-line/80 p-2">
+                      <p className="px-0.5 pb-1.5 font-mono text-[9px] uppercase tracking-[0.2em] text-muted">
+                        Drag-free group order
+                      </p>
+                      <div className="space-y-1">
+                        {typeOrder.map((p, i) => (
+                          <div
+                            key={p}
+                            className="flex items-center gap-2 rounded-[8px] bg-raised px-2 py-1.5"
+                          >
+                            <span className="font-mono text-[10px] text-muted">{i + 1}</span>
+                            <span className={cn("size-1.5 rounded-full", dotClass(p))} />
+                            <span className="flex-1 truncate text-[12px] font-semibold text-fg/85">
+                              {p}
+                              <span className="ml-1.5 font-mono text-[10px] text-muted">
+                                {posCounts.find(([x]) => x === p)?.[1] ?? 0}
+                              </span>
                             </span>
-                          </span>
-                          <span className="flex items-center gap-1">
                             <button
                               type="button"
                               onClick={() => moveType(i, -1)}
@@ -276,12 +354,25 @@ function MovieWords() {
                             >
                               <ArrowDown className="size-3.5" />
                             </button>
-                          </span>
-                        </div>
-                      ))}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ) : null}
+                  ) : null}
+
+                  {pos || freq ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPos(null);
+                        setFreq(null);
+                      }}
+                      className="w-full rounded-[9px] border border-line px-3 py-2 text-[11.5px] font-semibold text-muted hover:border-accent/40 hover:text-accent"
+                    >
+                      Clear filters · showing {items.length} of {all.length}
+                    </button>
+                  ) : null}
+                </div>
               </div>
             ) : null}
 
