@@ -3,7 +3,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Plus, Search, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { AddMovieDialog } from "@/components/AddMovieDialog";
-import { ExportDialog } from "@/components/ExportDialog";
 import { MovieThumb } from "@/components/MovieThumb";
 import { useAppState } from "@/lib/store";
 import { matchesWord, posLabel } from "@/lib/wordsearch";
@@ -43,7 +42,7 @@ function WordBank() {
   }, [q, words]);
 
   return (
-    <AppShell tab="Word Bank" right={<ExportDialog movies={movies} words={words} />}>
+    <AppShell tab="Word Bank">
       <div className="pt-5">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
