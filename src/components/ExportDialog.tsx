@@ -9,12 +9,15 @@ import { cn } from "@/lib/utils";
 interface Props {
   movies: Movie[];
   words: SavedWord[];
+  /** when true the scope is locked to the movies passed in (no scope picker) */
+  fixedScope?: boolean;
 }
 
-export function ExportDialog({ movies, words }: Props) {
+export function ExportDialog({ movies, words, fixedScope = false }: Props) {
   const [open, setOpen] = useState(false);
-  const [scope, setScope] = useState<string>("all");
+  const [scope, setScope] = useState<string>(fixedScope ? (movies[0]?.id ?? "all") : "all");
   const [format, setFormat] = useState<"pdf" | "csv">("pdf");
+
 
   const run = () => {
     const selectedMovies = scope === "all" ? movies : movies.filter((m) => m.id === scope);
@@ -56,25 +59,30 @@ export function ExportDialog({ movies, words }: Props) {
       </DialogTrigger>
       <DialogContent className="max-w-95 border-line bg-surface text-fg">
         <DialogHeader>
-          <DialogTitle className="text-[16px] font-semibold text-fg">Export word bank</DialogTitle>
+          <DialogTitle className="text-[16px] font-semibold text-fg">
+            {fixedScope ? `Export ${movies[0]?.title ?? "this movie"}` : "Export word bank"}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Scope</p>
-            <select
-              value={scope}
-              onChange={(e) => setScope(e.target.value)}
-              className="mt-1.5 w-full rounded-[8px] border border-line bg-raised px-3 py-2.5 text-[14px] text-fg outline-none focus:border-accent/60"
-            >
-              <option value="all">All movies</option>
-              {movies.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.title}
-                </option>
-              ))}
-            </select>
-          </div>
+          {fixedScope ? null : (
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Scope</p>
+              <select
+                value={scope}
+                onChange={(e) => setScope(e.target.value)}
+                className="mt-1.5 w-full rounded-[8px] border border-line bg-raised px-3 py-2.5 text-[14px] text-fg outline-none focus:border-accent/60"
+              >
+                <option value="all">All movies</option>
+                {movies.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
 
           <div>
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted">Format</p>

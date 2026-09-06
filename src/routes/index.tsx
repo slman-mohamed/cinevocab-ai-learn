@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation } from "@tanstack/react-query";
@@ -160,6 +160,8 @@ function Discover() {
     commitSave(word, selected.id);
   };
 
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
   return (
     <AppShell tab="Discover">
       <MoviePicker movies={movies} words={words} selected={selected} />
@@ -183,7 +185,9 @@ function Discover() {
                 setSavedKeys([]);
                 setSavedIds({});
                 clearDiscovery();
+                inputRef.current?.focus();
               }}
+              onMouseDown={(e) => e.preventDefault()}
               aria-label="Clear the text"
               className="absolute right-2.5 top-2.5 grid size-7 place-items-center rounded-[7px] border border-line bg-raised text-muted transition-colors hover:border-destructive/50 hover:text-destructive"
             >
@@ -191,6 +195,7 @@ function Discover() {
             </button>
           ) : null}
           <textarea
+            ref={inputRef}
             value={sentence}
             onChange={(e) => setSentence(e.target.value)}
             rows={3}

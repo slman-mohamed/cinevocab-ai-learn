@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Check, ChevronDown, Plus, Search, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Check, ChevronDown, Plus, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AddMovieDialog } from "./AddMovieDialog";
 import { MovieThumb } from "./MovieThumb";
@@ -16,14 +16,13 @@ interface Props {
 export function MoviePicker({ movies, words, selected }: Props) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
-  const [query, setQuery] = useState("");
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return q ? movies.filter((m) => m.title.toLowerCase().includes(q)) : movies;
-  }, [movies, query]);
+  const [pendingDelete, setPendingDelete] = useState<Movie | null>(null);
+  const [confirmText, setConfirmText] = useState("");
 
   const countFor = (movieId: string) => words.filter((w) => w.movieId === movieId).length;
+  const canDelete =
+    pendingDelete !== null &&
+    confirmText.trim().toLowerCase() === pendingDelete.title.trim().toLowerCase();
 
   return (
     <div className="pt-4">
@@ -62,18 +61,7 @@ export function MoviePicker({ movies, words, selected }: Props) {
               Your movies
             </DialogTitle>
           </DialogHeader>
-          <div className="px-4">
-            <div className="flex items-center gap-2 rounded-[8px] border border-line bg-raised px-3">
-              <Search className="size-3.5 text-muted" />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search movies…"
-                className="w-full bg-transparent py-2.5 text-[13px] text-fg outline-none placeholder:text-muted"
-              />
-            </div>
-          </div>
-          <div className="max-h-72 space-y-1.5 overflow-y-auto px-4 pb-2">
+          <div className="max-h-96 space-y-1.5 overflow-y-auto p-4">
             {selected ? (
               <button
                 type="button"
@@ -86,10 +74,10 @@ export function MoviePicker({ movies, words, selected }: Props) {
                 Clear selection
               </button>
             ) : null}
-            {filtered.length === 0 ? (
+            {movies.length === 0 ? (
               <p className="py-6 text-center text-[13px] text-muted">No movies yet.</p>
             ) : (
-              filtered.map((m) => (
+              movies.map((m) => (
                 <div
                   key={m.id}
                   className={cn(
@@ -115,7 +103,10 @@ export function MoviePicker({ movies, words, selected }: Props) {
                   <button
                     type="button"
                     aria-label={`Remove ${m.title}`}
-                    onClick={() => removeMovie(m.id)}
+                    onClick={() => {
+                      setConfirmText("");
+                      setPendingDelete(m);
+                    }}
                     className="shrink-0 text-muted transition-colors hover:text-destructive"
                   >
                     <Trash2 className="size-3.5" />
@@ -124,16 +115,53 @@ export function MoviePicker({ movies, words, selected }: Props) {
               ))
             )}
           </div>
-          <div className="border-t border-line p-3">
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm movie removal by typing its title */}
+      <Dialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+      >
+        <DialogContent className="max-w-95 border-line bg-surface text-fg">
+          <DialogHeader>
+            <DialogTitle className="text-[16px] font-semibold text-fg">
+              Remove this movie?
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-[13px] leading-relaxed text-muted">
+            This removes <span className="font-semibold text-fg">{pendingDelete?.title}</span> and
+            the {pendingDelete ? countFor(pendingDelete.id) : 0} words saved from it. To confirm,
+            type the movie name below.
+          </p>
+          <input
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            placeholder={pendingDelete?.title ?? ""}
+            aria-label="Type the movie name to confirm"
+            className="w-full rounded-[9px] border border-line bg-raised px-3 py-2.5 text-[14px] text-fg outline-none placeholder:text-muted focus:border-accent/60"
+          />
+          <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => {
-                setPickerOpen(false);
-                setAddOpen(true);
-              }}
-              className="flex w-full items-center justify-center gap-1.5 rounded-[8px] bg-accent py-2.5 text-[13px] font-semibold text-accent-foreground"
+              onClick={() => setPendingDelete(null)}
+              className="flex-1 rounded-[9px] border border-line bg-raised py-2.5 text-[13px] font-semibold text-muted"
             >
-              <Plus className="size-3.5" /> Add a movie
+              Keep it
+            </button>
+            <button
+              type="button"
+              disabled={!canDelete}
+              onClick={() => {
+                if (!pendingDelete) return;
+                removeMovie(pendingDelete.id);
+                setPendingDelete(null);
+              }}
+              className="flex-1 rounded-[9px] bg-destructive py-2.5 text-[13px] font-semibold text-destructive-foreground disabled:opacity-40"
+            >
+              Remove
             </button>
           </div>
         </DialogContent>
