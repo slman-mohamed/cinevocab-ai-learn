@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, ArrowUp, ArrowDown } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUp,
+  ArrowDown,
+  BarChart3,
+  History,
+  Layers,
+  Sparkles,
+} from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ExportDialog } from "@/components/ExportDialog";
 import { MovieThumb } from "@/components/MovieThumb";
