@@ -182,138 +182,113 @@ function MovieWords() {
             </div>
 
             {all.length > 0 ? (
-              <div className="mt-5 rounded-[11px] border border-line bg-surface">
-                <button
-                  type="button"
-                  onClick={() => setPanelOpen((o) => !o)}
-                  className="flex w-full items-center justify-between px-3.5 py-2.5 text-[12px] font-semibold text-fg"
-                >
-                  <span className="inline-flex items-center gap-2">
-                    <SlidersHorizontal className="size-3.5 text-accent" /> Filter &amp; sort
-                  </span>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
-                    {panelOpen ? "hide" : "show"}
-                  </span>
-                </button>
+              <div className="mt-5 space-y-2">
+                <div className="flex gap-2">
+                  <label className="min-w-0 flex-1">
+                    <span className="sr-only">Filter by word type</span>
+                    <select
+                      value={pos ?? ""}
+                      onChange={(e) => setPos(e.target.value || null)}
+                      className={selectClass(pos !== null)}
+                    >
+                      <option value="">All types · {all.length}</option>
+                      {posCounts.map(([p, n]) => (
+                        <option key={p} value={p}>
+                          {p} · {n}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="min-w-0 flex-1">
+                    <span className="sr-only">Filter by how common</span>
+                    <select
+                      value={freq ?? ""}
+                      onChange={(e) => setFreq((e.target.value || null) as FrequencyLevel | null)}
+                      className={selectClass(freq !== null)}
+                    >
+                      <option value="">All levels · {all.length}</option>
+                      {freqCounts.map(([level, n]) => (
+                        <option key={level} value={level}>
+                          {level} · {n}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
 
-                {panelOpen ? (
-                  <div className="space-y-3.5 border-t border-line px-3.5 py-3">
-                    <div>
-                      <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
-                        Word type
-                      </p>
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setPos(null)}
-                          className={chip(pos === null)}
+                <div className="flex items-center gap-2">
+                  <label className="min-w-0 flex-1">
+                    <span className="sr-only">Sort the cards</span>
+                    <select
+                      value={sort}
+                      onChange={(e) => setSort(e.target.value as SortKey)}
+                      className={selectClass(sort !== "oldest")}
+                    >
+                      <option value="oldest">Oldest first</option>
+                      <option value="newest">Newest first</option>
+                      <option value="common">Most common first</option>
+                      <option value="type">Grouped by word type</option>
+                    </select>
+                  </label>
+                  {pos || freq ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPos(null);
+                        setFreq(null);
+                      }}
+                      className="shrink-0 rounded-[9px] border border-line bg-raised px-3 py-2.5 text-[12px] font-semibold text-muted hover:text-accent"
+                    >
+                      Clear
+                    </button>
+                  ) : null}
+                </div>
+
+                {sort === "type" && typeOrder.length > 1 ? (
+                  <div className="rounded-[11px] border border-line bg-surface p-2">
+                    <p className="px-1 pb-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
+                      Group order
+                    </p>
+                    <div className="space-y-1">
+                      {typeOrder.map((p, i) => (
+                        <div
+                          key={p}
+                          className="flex items-center justify-between rounded-[8px] bg-raised px-2.5 py-1.5"
                         >
-                          all {all.length}
-                        </button>
-                        {posCounts.map(([p, n]) => (
-                          <button
-                            key={p}
-                            type="button"
-                            onClick={() => setPos(pos === p ? null : p)}
-                            className={chip(pos === p)}
-                          >
-                            {p} {n}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
-                        How common
-                      </p>
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setFreq(null)}
-                          className={chip(freq === null)}
-                        >
-                          all {all.length}
-                        </button>
-                        {freqCounts.map(([level, n]) => (
-                          <button
-                            key={level}
-                            type="button"
-                            onClick={() => setFreq(freq === level ? null : level)}
-                            className={chip(freq === level)}
-                          >
-                            {level} {n}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
-                        Sort by
-                      </p>
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        {(
-                          [
-                            ["oldest", "oldest first"],
-                            ["newest", "newest first"],
-                            ["common", "how common"],
-                            ["type", "word type"],
-                          ] as [SortKey, string][]
-                        ).map(([key, label]) => (
-                          <button
-                            key={key}
-                            type="button"
-                            onClick={() => setSort(key)}
-                            className={chip(sort === key)}
-                          >
-                            {label}
-                          </button>
-                        ))}
-                      </div>
-
-                      {sort === "type" ? (
-                        <div className="mt-2.5 space-y-1.5">
-                          {typeOrder.map((p, i) => (
-                            <div
-                              key={p}
-                              className="flex items-center justify-between rounded-[9px] border border-line bg-raised px-2.5 py-1.5"
+                          <span className="text-[12px] font-semibold text-fg/85">
+                            {p}{" "}
+                            <span className="font-mono text-[10px] text-muted">
+                              {posCounts.find(([x]) => x === p)?.[1] ?? 0}
+                            </span>
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => moveType(i, -1)}
+                              disabled={i === 0}
+                              aria-label={`Move ${p} up`}
+                              className="grid size-7 place-items-center rounded-md text-muted hover:text-accent disabled:opacity-25"
                             >
-                              <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-fg/85">
-                                <ArrowUpDown className="size-3.5 text-muted" /> {p}
-                                <span className="text-muted">
-                                  {posCounts.find(([x]) => x === p)?.[1] ?? 0}
-                                </span>
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <button
-                                  type="button"
-                                  onClick={() => moveType(i, -1)}
-                                  disabled={i === 0}
-                                  aria-label={`Move ${p} up`}
-                                  className="grid size-7 place-items-center rounded-md border border-line text-muted hover:text-accent disabled:opacity-30"
-                                >
-                                  <ArrowUp className="size-3.5" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => moveType(i, 1)}
-                                  disabled={i === typeOrder.length - 1}
-                                  aria-label={`Move ${p} down`}
-                                  className="grid size-7 place-items-center rounded-md border border-line text-muted hover:text-accent disabled:opacity-30"
-                                >
-                                  <ArrowDown className="size-3.5" />
-                                </button>
-                              </span>
-                            </div>
-                          ))}
+                              <ArrowUp className="size-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => moveType(i, 1)}
+                              disabled={i === typeOrder.length - 1}
+                              aria-label={`Move ${p} down`}
+                              className="grid size-7 place-items-center rounded-md text-muted hover:text-accent disabled:opacity-25"
+                            >
+                              <ArrowDown className="size-3.5" />
+                            </button>
+                          </span>
                         </div>
-                      ) : null}
+                      ))}
                     </div>
                   </div>
                 ) : null}
               </div>
             ) : null}
+
 
             <div className="mt-5 space-y-2.5">
               {items.length === 0 ? (
