@@ -9,6 +9,7 @@ import { MovieChooserDialog } from "@/components/MoveWordDialog";
 import { WordCard } from "@/components/WordCard";
 import { SentenceCard } from "@/components/SentenceCard";
 import { extractWords } from "@/lib/vocab.functions";
+import { getCachedExtraction, setCachedExtraction } from "@/lib/extract-cache";
 import { notify } from "@/lib/notify";
 import {
   clearDiscovery,
@@ -99,8 +100,16 @@ function Discover() {
 
 
   const mutation = useMutation({
-    mutationFn: (text: string) =>
-      extract({ data: { sentence: text, movieTitle: selected?.title } }),
+    mutationFn: async (text: string) => {
+      const cached = getCachedExtraction(text, selected?.title);
+      if (cached) return cached;
+      const fresh = await extract({ data: { sentence: text, movieTitle: selected?.title } });
+      setCachedExtraction(text, selected?.title, {
+        explanation: fresh.explanation ?? null,
+        words: fresh.words,
+      });
+      return fresh;
+    },
     onSuccess: (data, text) => {
       setResults(data.words);
       setExplanation(data.explanation ?? null);
