@@ -100,9 +100,10 @@ Respond with ONLY JSON: {"explanation": string|null, "words":[...]}.`;
       throw new Error("The AI response was incomplete. Try again.");
     }
 
+    const hasParens = /\([^)]*\S[^)]*\)/.test(data.sentence);
     return {
       explanation: result.data.explanation?.trim() || null,
-      words: result.data.words.map((w) => ({
+      words: result.data.words.slice(0, hasParens ? result.data.words.length : 3).map((w) => ({
         ...w,
         examples: w.examples.slice(0, 3),
       })),
@@ -141,7 +142,7 @@ Answer only about this word/phrase, in clear simple English, max 70 words. Use s
         "X-Lovable-AIG-SDK": "fetch",
       },
       body: JSON.stringify({
-        model: "google/gemini-3.7-flash",
+        model: "google/gemini-3.1-flash-lite",
         messages: [{ role: "user", content: prompt }],
       }),
     });
