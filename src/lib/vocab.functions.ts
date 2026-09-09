@@ -39,24 +39,22 @@ export const extractWords = createServerFn({ method: "POST" })
       throw new Error("AI is not configured for this app yet.");
     }
 
-    const prompt = `You are a vocabulary coach for advanced English learners watching movies.
-Input${data.movieTitle ? ` from the movie "${data.movieTitle}"` : ""}:
+    const prompt = `Vocabulary coach for advanced English learners watching movies.
+Input${data.movieTitle ? ` from "${data.movieTitle}"` : ""}:
 """${data.sentence}"""
 
-STEP 1 — "explanation":
-- If the input is a full sentence (a clause with a subject and a verb, or clearly a line of dialogue), explain what the WHOLE sentence means, paraphrased in very simple everyday English (max 40 words). Mention the tone/implication if it is figurative or sarcastic.
-- If the input is only a single word or a short phrase (not a full sentence), set "explanation" to null.
+"explanation": if the input is a full sentence or line of dialogue, paraphrase the WHOLE sentence in very simple everyday English (max 40 words), noting tone if figurative or sarcastic. If it is just a word or short phrase, use null.
 
-STEP 2 — "words":
-Pick the words or phrasal verbs a B2/C1 learner would find difficult (usually 1-5, never easy words like "the", "watch", "go").
-PARENTHESES RULE: any text the user wrapped in parentheses ( ) MUST get its own entry, even if it is easy or very common. Use the text inside the parentheses as the "word" (lemma form), and never include the parentheses characters themselves in any field. Put these entries first.
-For each entry, return JSON with keys:
-- word: the base/lemma form as used
-- ipa: British-style IPA phonetic transcription wrapped in slashes, correct IPA unicode symbols
-- partOfSpeech: one of noun, verb, adjective, adverb, phrasal verb, idiom, preposition, pronoun, conjunction
-- frequency: exactly one of "Very Common", "Common", "Uncommon", "Rare" describing real-world usage frequency
-- definition: one clear English definition (max 25 words)
-- examples: exactly 3 examples that sound like real spoken English a native speaker would actually say — casual, contemporary, concrete situations; no textbook, formal or stilted phrasing, no "One must...", and each under 15 words
+"words":
+- PARENTHESES RULE: if any text is wrapped in ( ), return ONLY entries for the text inside the parentheses — even if easy or very common — and nothing else. Never include the parentheses characters in any field.
+- Otherwise: at most 3 entries, the hardest words or phrasal verbs for a B2/C1 learner. Skip easy words.
+Each entry:
+- word: base/lemma form
+- ipa: British IPA in slashes, correct IPA unicode
+- partOfSpeech: noun|verb|adjective|adverb|phrasal verb|idiom|preposition|pronoun|conjunction
+- frequency: "Very Common"|"Common"|"Uncommon"|"Rare"
+- definition: one clear English definition, max 25 words
+- examples: exactly 3 lines a native speaker would really say — casual, contemporary, concrete, each under 15 words; no textbook or formal phrasing
 
 Respond with ONLY JSON: {"explanation": string|null, "words":[...]}.`;
 
@@ -68,7 +66,7 @@ Respond with ONLY JSON: {"explanation": string|null, "words":[...]}.`;
         "X-Lovable-AIG-SDK": "fetch",
       },
       body: JSON.stringify({
-        model: "google/gemini-3.7-flash",
+        model: "google/gemini-3.1-flash-lite",
         messages: [{ role: "user", content: prompt }],
       }),
     });
